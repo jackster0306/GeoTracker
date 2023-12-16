@@ -1,24 +1,35 @@
 package com.psyjg14.coursework2;
 
 
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+
+import androidx.appcompat.widget.SearchView;
+
+import android.view.View;
 import android.widget.Toast;
 
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -32,14 +43,22 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private boolean  requestingLocationUpdates = false;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
+    private static final String TAG = "COMP3018";
+    private boolean addingGeofence = false;
+    private Marker geofenceMarker;
+    private boolean requestingLocationUpdates = false;
 
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     private final int FINE_PERMISSION_CODE = 1;
@@ -50,10 +69,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback locationCallback;
     LocationRequest locationRequest;
 
+    private SearchView mapSearchView;
+
+    private GeofencingClient geofencingClient;
+
+    private List<Geofence> geofenceList;
+
+    PendingIntent geofencePendingIntent;
+
+    private GeofenceHelper geofenceHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mapSearchView = findViewById(R.id.searchView);
 
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -76,13 +107,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                     map.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
                     map.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
+                    Log.d("LOCATION", "Marker Set");
                 }
             }
         };
+
+
+        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofenceHelper = new GeofenceHelper();
+
+
     }
 
-    private void getLastLocation(){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+    private void getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
@@ -104,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // Log the exception for more information.
                 }
             });
-        } else{
+        } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
         }
     }
@@ -127,30 +165,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
          */
         //getLastLocation();
         Log.d("LOCATION", "Location: " + currentLocation);
-        if(currentLocation != null){
+        if (currentLocation != null) {
             LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             map.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
             map.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
-        } else{
-            LatLng sydney = new LatLng(52.95, -1.15);
-            map.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-            MarkerOptions options = new MarkerOptions().position(sydney).title("Marker in Nottingham");
-            //Change colour of marker
-            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            map.addMarker(options);
+            addGeofence(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 100);
+            CircleOptions circleOptions = new CircleOptions()
+                    .center(currentLatLng)
+                    .radius(100) // Set the geofence radius
+                    .strokeColor(Color.RED) // Set the stroke color
+                    .fillColor(Color.argb(70, 255, 0, 0)); // Set the fill color with alpha
+            map.addCircle(circleOptions);
         }
 
+        mapSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                String location = mapSearchView.getQuery().toString();
+                List<Address> addressList = null;
 
+                if (location != null) {
+                    Geocoder geocoder = new Geocoder(MainActivity.this);
+                    try {
+                        addressList = geocoder.getFromLocationName(location, 1);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Address address = addressList.get(0);
+                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    map.addMarker(new MarkerOptions().position(latLng).title(location));
+                    map.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.d("SEARCH", "Query: " + newText);
+                return false;
+            }
+        });
+
+        map.setOnMapClickListener(this);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == FINE_PERMISSION_CODE){
-            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == FINE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLastLocation();
                 requestingLocationUpdates = true;
-            }else{
+            } else {
                 Toast.makeText(this, "Permission denied, please allow the permission", Toast.LENGTH_SHORT).show();
             }
         }
@@ -233,9 +300,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
+    private void addGeofence(LatLng latLng, float radius) {
+        Geofence geofence = geofenceHelper.createGeofence(latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+        GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
+                .addGeofence(geofence)
+                .build();
+        PendingIntent pendingIntent = getGeofencePendingIntent();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                        .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d("COMP3018", "onSuccess: Geofence Added...");
+                            }
+                        })
+                        .addOnFailureListener(this, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d("COMP3018", "onFailure: " + e.getMessage());
+                            }
+                        });
+            } else{
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, FINE_PERMISSION_CODE);
+            }
 
+        }
 
+    }
 
+    private PendingIntent getGeofencePendingIntent() {
+        Log.d("COMP3018", "getGeofencePendingIntent: ");
+        Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
+        return pendingIntent;
+    }
 
+    @Override
+    public void onMapClick(LatLng latLng) {
+        Log.d(TAG, "Map clicked");
+        Log.d(TAG, "Adding geofence: " + addingGeofence);
+        if (addingGeofence) {
+            if (geofenceMarker != null) {
+                geofenceMarker.remove();
+            }
+            map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            MarkerOptions options = new MarkerOptions().position(latLng).title("Geofence Location");
+            //Change colour of marker
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            geofenceMarker = map.addMarker(options);
+
+        }
+    }
+
+    public void onGeofenceButtonPressed(View v){
+        addingGeofence = !addingGeofence;
+        if(addingGeofence){
+            Toast.makeText(this, "Click on the map to add a geofence", Toast.LENGTH_SHORT).show();
+        } else{
+            if(geofenceMarker != null){
+                Toast.makeText(this, "Geofence added", Toast.LENGTH_SHORT).show();
+                addGeofence(geofenceMarker.getPosition(), 100);
+                CircleOptions circleOptions = new CircleOptions()
+                        .center(geofenceMarker.getPosition())
+                        .radius(100) // Set the geofence radius
+                        .strokeColor(Color.RED) // Set the stroke color. Make it changable based on good/bad location reminders
+                        .fillColor(Color.argb(70, 255, 0, 0)); // Set the fill color with alpha
+                map.addCircle(circleOptions);
+                geofenceMarker = null;
+
+            } else{
+                Toast.makeText(this, "No geofence added", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
 
