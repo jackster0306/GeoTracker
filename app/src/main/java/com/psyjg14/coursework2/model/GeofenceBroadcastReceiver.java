@@ -1,4 +1,4 @@
-package com.psyjg14.coursework2;
+package com.psyjg14.coursework2.model;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

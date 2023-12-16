@@ -1,6 +1,4 @@
-package com.psyjg14.coursework2.viewmodels;
-
-import android.util.Log;
+package com.psyjg14.coursework2.viewmodel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
