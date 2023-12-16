@@ -21,8 +21,6 @@ public class GeofenceHelper {
                 .build();
     }
 
-
-
     private String generateRequestId() {
         return UUID.randomUUID().toString();
     }
