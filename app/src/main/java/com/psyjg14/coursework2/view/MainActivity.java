@@ -6,17 +6,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Looper;
+import android.os.IBinder;
 import android.util.Log;
 
 import androidx.appcompat.widget.SearchView;
@@ -27,19 +28,13 @@ import androidx.lifecycle.ViewModelProvider;
 import android.widget.Toast;
 
 
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.Priority;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -50,17 +45,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.psyjg14.coursework2.model.GeofenceBroadcastReceiver;
 import com.psyjg14.coursework2.model.GeofenceHelper;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivityMainBinding;
-import com.psyjg14.coursework2.model.LocationManager;
+import com.psyjg14.coursework2.model.LocationService;
 import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, LocationManager.LocationManagerCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener{
     private static final String TAG = "COMP3018";
 
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
@@ -81,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int GEOFENCE_RADIUS = 100;
 
-    private LocationManager locationManager;
+    private LocationService locationService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,10 +92,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        locationManager = new LocationManager(this, this);
-        LocationRequest locationRequest = locationManager.createLocationRequest();
-        locationManager.requestLocationUpdates(locationRequest);
 
 //        locationCallback = new LocationCallback() {
 //            @Override
@@ -124,6 +114,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                }
 //            }
 //        };
+        if(!mainActivityViewModel.getIsBound()){
+            Intent intent = new Intent(MainActivity.this, LocationService.class);
+            bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        }
+
+        Log.d(TAG, "Starting service");
+        Intent intent = new Intent(MainActivity.this, LocationService.class);
+        startService(intent);
 
 
         geofencingClient = LocationServices.getGeofencingClient(this);
@@ -166,16 +164,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.d("COMP3018", "Main Activity - Location changed: " + location);
-        if(map != null && location != null){
-            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-        }
-        if (location != null) {
-        }
-    }
+//    @Override
+//    public void onLocationChanged(Location location) {
+//        Log.d("COMP3018", "Main Activity - Location changed: " + location);
+//        if(map != null && location != null){
+//            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+//            map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+//        }
+//        if (location != null) {
+//        }
+//    }
 
 
     /**************************************************************************
@@ -286,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationManager.getLastLocation();
+                locationService.getLastLocation();
                 mainActivityViewModel.setRequestingLocationUpdates(true);
             } else {
                 Toast.makeText(this, "Permission denied, please allow the permission", Toast.LENGTH_SHORT).show();
@@ -419,7 +417,67 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     /**************************************************************************
-     *  Button Press Codes
+     *  Location Service code
      **************************************************************************/
+
+
+
+    private ServiceConnection connection = new ServiceConnection() {
+
+        // Called when a client binds to the service
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.d(TAG, "onServiceConnected");
+            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
+            locationService = binder.getService();
+            Log.d(TAG, "isBound set to true");
+            mainActivityViewModel.setIsBound(true);
+
+            locationService.setCallback(new LocationService.MyLocationCallback() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    Log.d("COMP3018", "Main Activity - Location changed: " + location);
+                    if(map != null && location != null){
+                        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+                    }
+                }
+            });
+        }
+
+        // Called when a client unbinds from the service
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mainActivityViewModel.setIsBound(false);
+        }
+    };
+
+    /**
+     * Called when the activity is started.
+     */
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "OnStart called");
+        super.onStart();
+        Intent intent = new Intent(this, LocationService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * Called when the activity is stopped.
+     */
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "OnStop called");
+        super.onStop();
+        if (mainActivityViewModel.getIsBound()) {
+            unbindService(connection);
+            mainActivityViewModel.setIsBound(false);
+        }
+    }
 }
+
+
+
+
 

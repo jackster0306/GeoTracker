@@ -32,6 +32,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".model.LocationService"
+            android:enabled="true"
+            android:exported="true" />
+
         <receiver
             android:name=".model.GeofenceBroadcastReceiver"
             android:exported="false" />

@@ -14,6 +14,8 @@ public class MainActivityViewModel extends ViewModel {
 
         private boolean geofenceFirstPressed = true;
 
+        private boolean isBound = false;
+
         public boolean getGeofenceFirstPressed() {
                 return geofenceFirstPressed;
         }
@@ -33,6 +35,7 @@ public class MainActivityViewModel extends ViewModel {
         public Marker getGeofenceMarker() {
                 return geofenceMarker;
         }
+
 
     public LiveData<Boolean> getAddingGeofence() {
         return addingGeofence;
@@ -57,5 +60,24 @@ public class MainActivityViewModel extends ViewModel {
         public void setRequestingLocationUpdates(boolean requestingLocationUpdates) {
                 this.requestingLocationUpdates = requestingLocationUpdates;
         }
+
+
+    /**
+     * Getter for the flag indicating whether the service is bound.
+     *
+     * @return boolean representing whether the service is bound.
+     */
+    public boolean getIsBound() {
+        return isBound;
+    }
+
+    /**
+     * Setter for the flag indicating whether the service is bound.
+     *
+     * @param isBound The new value for the isBound flag.
+     */
+    public void setIsBound(boolean isBound) {
+        this.isBound = isBound;
+    }
 
 }
