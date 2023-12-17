@@ -1,5 +1,7 @@
 package com.psyjg14.coursework2.viewmodel;
 
+import android.location.Location;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -8,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 
 public class MainActivityViewModel extends ViewModel {
+        private Location lastLocation;
         private MutableLiveData<Boolean> addingGeofence = new MutableLiveData<>();
         private boolean requestingLocationUpdates = false;
         private Marker geofenceMarker;
@@ -79,5 +82,14 @@ public class MainActivityViewModel extends ViewModel {
     public void setIsBound(boolean isBound) {
         this.isBound = isBound;
     }
+
+
+    public void setLastLocation(Location lastLocation) {
+                this.lastLocation = lastLocation;
+        }
+
+        public Location getLastLocation() {
+                return lastLocation;
+        }
 
 }

@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -25,6 +26,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.view.View;
 import android.widget.Toast;
 
 
@@ -43,6 +45,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.psyjg14.coursework2.model.GeofenceBroadcastReceiver;
@@ -52,6 +56,7 @@ import com.psyjg14.coursework2.databinding.ActivityMainBinding;
 import com.psyjg14.coursework2.model.LocationService;
 import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener{
@@ -76,6 +81,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int GEOFENCE_RADIUS = 100;
 
     private LocationService locationService;
+
+    private Polyline polyline;
+
+    private final List<LatLng> path = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -436,10 +445,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationService.setCallback(new LocationService.MyLocationCallback() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    Log.d("COMP3018", "Main Activity - Location changed: " + location);
                     if(map != null && location != null){
+                        Log.d("COMP3018", "Main Activity - Location changed: " + location);
                         LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+                        path.add(myLocation);
+                        PolylineOptions polylineOptions = new PolylineOptions()
+                                .addAll(path)
+                                .color(Color.GREEN)
+                                .width(10);
+
+                        map.addPolyline(polylineOptions);
                     }
                 }
             });
@@ -451,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mainActivityViewModel.setIsBound(false);
         }
     };
+
 
     /**
      * Called when the activity is started.
@@ -473,6 +490,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mainActivityViewModel.getIsBound()) {
             unbindService(connection);
             mainActivityViewModel.setIsBound(false);
+        }
+    }
+
+    public void stopTracking(View v){
+        if(map != null && path.size() > 0){
+            PolylineOptions polylineOptions = new PolylineOptions()
+                    .addAll(path)
+                    .color(Color.BLUE)
+                    .width(10);
+
+            map.addPolyline(polylineOptions);
         }
     }
 }

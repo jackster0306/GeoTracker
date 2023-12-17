@@ -71,7 +71,7 @@ public class LocationService extends Service {
     }
 
     private void initLocationCallback() {
-        locationCallback = new LocationCallback(){
+        locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
@@ -83,7 +83,7 @@ public class LocationService extends Service {
         };
     }
 
-    public void startLocationUpdates(LocationRequest locationRequest){
+    public void startLocationUpdates(LocationRequest locationRequest) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
         } else {
@@ -96,13 +96,13 @@ public class LocationService extends Service {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    public void getLastLocation(){
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+    public void getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null) {
                     Log.d(TAG, "Last Location: " + location);
                     myLocationCallback.onLocationChanged(location);
-                }else{
+                } else {
                     Log.d(TAG, "Last Location: null");
                 }
             });
@@ -111,11 +111,20 @@ public class LocationService extends Service {
         }
     }
 
-    public LocationRequest createLocationRequest(){
-        return new LocationRequest.Builder(4000)
-                .setIntervalMillis(10000)
+    public LocationRequest createLocationRequest() {
+        return new LocationRequest.Builder(0)
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setMinUpdateDistanceMeters(50)
                 .build();
+    }
+
+    public Location getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            return fusedLocationProviderClient.getLastLocation().getResult();
+        }
+        else{
+            return null;
+        }
     }
 
 }
