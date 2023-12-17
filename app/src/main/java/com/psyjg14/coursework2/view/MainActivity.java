@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,6 +26,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.room.Room;
 
 import android.view.View;
 import android.widget.Toast;
@@ -49,6 +51,9 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.psyjg14.coursework2.database.AppDatabase;
+import com.psyjg14.coursework2.database.dao.GeofenceDao;
+import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.model.GeofenceBroadcastReceiver;
 import com.psyjg14.coursework2.model.GeofenceHelper;
 import com.psyjg14.coursework2.R;
@@ -85,6 +90,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Polyline polyline;
 
     private final List<LatLng> path = new ArrayList<>();
+
+    List<GeofenceEntity> geofences = new ArrayList<>();
+    @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +105,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         binding.setLifecycleOwner(this);
 
         mapSearchView = binding.searchView;
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "database-name").build();
+
+                GeofenceDao userDao = db.geofenceDao();
+                geofences = userDao.getAllGeofences();
+                Log.d("COMP3018", "Geofences: " + geofences);
+                return null;
+            }
+        }.execute();
+
 
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -238,6 +260,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         map.setOnMapClickListener(this);
+        for(GeofenceEntity geofence: geofences){
+            LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
+            CircleOptions circleOptions = new CircleOptions()
+                    .center(latLng)
+                    .radius(geofence.radius) // Set the geofence radius
+                    .strokeColor(Color.RED) // Set the stroke color. Make it changable based on good/bad location reminders
+                    .fillColor(Color.argb(70, 255, 0, 0)); // Set the fill color with alpha
+            map.addCircle(circleOptions);
+        }
+
     }
 
     @Override
@@ -393,11 +425,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 geofencingClient.addGeofences(geofencingRequest, pendingIntent)
                         .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                            @SuppressLint("StaticFieldLeak")
                             @Override
                             public void onSuccess(Void aVoid) {
                                 Log.d("COMP3018", "onSuccess: Geofence Added...");
                                 //if(mainActivityViewModel.getGeofenceMarker() != null){
                                     Log.d("COMP3018", "onSuccess: Adding circle");
+                                GeofenceEntity geofenceEntity = new GeofenceEntity();
+                                geofenceEntity.latitude = latLng.latitude;
+                                geofenceEntity.longitude = latLng.longitude;
+                                geofenceEntity.radius = radius;
+                                geofenceEntity.reminderMessage = "Reminder Message";
+                                geofenceEntity.transitionType = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
+                                new AsyncTask<Void, Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground(Void... voids) {
+                                        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                                                AppDatabase.class, "database-name").build();
+
+                                        GeofenceDao geofenceDao = db.geofenceDao();
+                                        geofenceDao.insertGeofence(geofenceEntity);
+                                        return null;
+                                    }
+                                }.execute();
 
                                     //mainActivityViewModel.setGeofenceMarker(null);
                                // }
