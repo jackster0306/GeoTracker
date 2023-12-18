@@ -39,6 +39,9 @@ android {
 }
 
 dependencies {
+    //GSON for type conversion
+    implementation("com.google.code.gson:gson:2.8.8")
+
     //Google Maps
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")

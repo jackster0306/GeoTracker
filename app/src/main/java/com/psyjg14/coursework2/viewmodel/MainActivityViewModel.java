@@ -5,8 +5,14 @@ import android.location.Location;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.psyjg14.coursework2.database.entities.GeofenceEntity;
+
 import androidx.lifecycle.MutableLiveData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivityViewModel extends ViewModel {
@@ -18,6 +24,37 @@ public class MainActivityViewModel extends ViewModel {
         private boolean geofenceFirstPressed = true;
 
         private boolean isBound = false;
+
+    private final List<LatLng> path = new ArrayList<>();
+
+    List<GeofenceEntity> geofences = new ArrayList<>();
+
+
+    public List<GeofenceEntity> getGeofences() {
+        return geofences;
+    }
+
+    public void setGeofences(List<GeofenceEntity> geofences) {
+        this.geofences = geofences;
+    }
+
+    public void addGeofenceToList(GeofenceEntity geofence) {
+        geofences.add(geofence);
+    }
+
+    public void removeGeofenceFromList(GeofenceEntity geofence) {
+        geofences.remove(geofence);
+    }
+
+    public List<LatLng> getPath() {
+        return path;
+    }
+
+    public void addLatLngToPath(LatLng latLng) {
+        path.add(latLng);
+    }
+
+
 
         public boolean getGeofenceFirstPressed() {
                 return geofenceFirstPressed;

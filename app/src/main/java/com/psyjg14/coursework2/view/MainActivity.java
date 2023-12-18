@@ -53,7 +53,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
+import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
+import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.model.GeofenceBroadcastReceiver;
 import com.psyjg14.coursework2.model.GeofenceHelper;
 import com.psyjg14.coursework2.R;
@@ -66,19 +68,12 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener{
     private static final String TAG = "COMP3018";
-
-    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     private final int FINE_PERMISSION_CODE = 1;
     private SearchView mapSearchView;
 
     private MainActivityViewModel mainActivityViewModel;
 
     private GoogleMap map;
-
-    Location currentLocation;
-    FusedLocationProviderClient fusedLocationProviderClient;
-    private LocationCallback locationCallback;
-    LocationRequest locationRequest;
     private GeofencingClient geofencingClient;
 
     private GeofenceHelper geofenceHelper;
@@ -87,11 +82,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LocationService locationService;
 
-    private Polyline polyline;
-
-    private final List<LatLng> path = new ArrayList<>();
-
-    List<GeofenceEntity> geofences = new ArrayList<>();
+    private List<GeofenceEntity> geofences = new ArrayList<>();
     @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,8 +104,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         AppDatabase.class, "database-name").build();
 
                 GeofenceDao userDao = db.geofenceDao();
-                geofences = userDao.getAllGeofences();
-                Log.d("COMP3018", "Geofences: " + geofences);
+                mainActivityViewModel.setGeofences(userDao.getAllGeofences());
                 return null;
             }
         }.execute();
@@ -124,27 +114,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-//        locationCallback = new LocationCallback() {
-//            @Override
-//            public void onLocationResult(LocationResult locationResult) {
-//                Log.d("LOCATION", "ONLOCATION RESULT");
-//                if (locationResult == null) {
-//                    Log.d("LOCATION", "locationResult is null");
-//                    return;
-//                }
-//                for (Location location : locationResult.getLocations()) {
-//                    // Update UI with location data
-//                    Log.d("LOCATION", "In For Callback Location: " + location);
-//                    currentLocation = location;
-//                    LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-//                    if(map != null){
-//                        map.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
-//                        //map.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
-//                        Log.d("LOCATION", "Marker Set");
-//                    }
-//                }
-//            }
-//        };
         if(!mainActivityViewModel.getIsBound()){
             Intent intent = new Intent(MainActivity.this, LocationService.class);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
@@ -195,17 +164,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-//    @Override
-//    public void onLocationChanged(Location location) {
-//        Log.d("COMP3018", "Main Activity - Location changed: " + location);
-//        if(map != null && location != null){
-//            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-//            map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-//        }
-//        if (location != null) {
-//        }
-//    }
-
 
     /**************************************************************************
      *  Map code
@@ -221,14 +179,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
         }
-
-//        Log.d("LOCATION", "Location: " + currentLocation);
-//        if (currentLocation != null) {
-//            LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-//            map.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
-//            map.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
-//            addGeofence(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), GEOFENCE_RADIUS);
-//        }
 
         mapSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -260,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         map.setOnMapClickListener(this);
-        for(GeofenceEntity geofence: geofences){
+        for(GeofenceEntity geofence: mainActivityViewModel.getGeofences()){
             LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
             CircleOptions circleOptions = new CircleOptions()
                     .center(latLng)
@@ -292,34 +242,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      **************************************************************************/
 
 
-//    private void getLastLocation() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-//                @Override
-//                public void onSuccess(Location location) {
-//                    if (location != null) {
-//                        Log.d("LOCATION", "Location found: " + location);
-//                        currentLocation = location;
-//
-//                        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-//                        mapFragment.getMapAsync(MainActivity.this);
-//                    } else {
-//                        Log.d("LOCATION", "Location is null");
-//                        // Check emulator settings, permissions, etc.
-//                    }
-//                }
-//            }).addOnFailureListener(new OnFailureListener() {
-//                @Override
-//                public void onFailure(@NonNull Exception e) {
-//                    Log.e("LOCATION", "Error getting location", e);
-//                    // Log the exception for more information.
-//                }
-//            });
-//        } else {
-//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
-//        }
-//    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -332,83 +254,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
-
-//    protected void createLocationRequest() {
-//        locationRequest = new LocationRequest.Builder(4000)
-//                .setIntervalMillis(10000)
-//                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-//                .build();
-//
-//        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-//                .addLocationRequest(locationRequest);
-//
-//        SettingsClient client = LocationServices.getSettingsClient(this);
-//        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-//
-//
-//        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-//            @Override
-//            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-//                // All location settings are satisfied. The client can initialize
-//                // location requests here.
-//                // ...
-//
-//                mainActivityViewModel.setRequestingLocationUpdates(true);
-//                Log.d("LOCATION", "Location settings satisfied");
-//                startLocationUpdates();
-//            }
-//        });
-//
-//        task.addOnFailureListener(this, new OnFailureListener() {
-//            @Override
-//            public void onFailure(@NonNull Exception e) {
-//                Log.d("LOCATION", "Location settings not satisfied");
-//                if (e instanceof ResolvableApiException) {
-//                    // Location settings are not satisfied, but this can be fixed
-//                    // by showing the user a dialog.
-//                    try {
-//                        // Show the dialog by calling startResolutionForResult(),
-//                        // and check the result in onActivityResult().
-//                        ResolvableApiException resolvable = (ResolvableApiException) e;
-//                        resolvable.startResolutionForResult(MainActivity.this,
-//                                REQUEST_CHECK_SETTINGS);
-//                    } catch (IntentSender.SendIntentException sendEx) {
-//                        // Ignore the error.
-//                    }
-//                }
-//            }
-//        });
-//    }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        if (mainActivityViewModel.getRequestingLocationUpdates()) {
-//            Log.d("LOCATION", "Requesting location updates");
-//            startLocationUpdates();
-//        }
-//    }
-//
-//    @SuppressLint("MissingPermission")
-//    private void startLocationUpdates() {
-//        Log.d("LOCATION", "Starting location updates");
-//        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
-//                locationCallback,
-//                Looper.getMainLooper());
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        Log.d("LOCATION", "Pausing location updates");
-//        super.onPause();
-//        stopLocationUpdates();
-//    }
-//
-//    private void stopLocationUpdates() {
-//        Log.d("LOCATION", "Stopping location updates");
-//        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
-//    }
 
 
     /**************************************************************************
@@ -499,9 +344,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Log.d("COMP3018", "Main Activity - Location changed: " + location);
                         LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-                        path.add(myLocation);
+                        mainActivityViewModel.addLatLngToPath(myLocation);
                         PolylineOptions polylineOptions = new PolylineOptions()
-                                .addAll(path)
+                                .addAll(mainActivityViewModel.getPath())
                                 .color(Color.GREEN)
                                 .width(10);
 
@@ -543,15 +388,49 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void stopTracking(View v){
-        if(map != null && path.size() > 0){
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .addAll(path)
-                    .color(Color.BLUE)
-                    .width(10);
+    public void onStopWalkPressed(View v){
+        MovementEntity movementEntity = new MovementEntity();
+        movementEntity.movementName = "Test Movement";
+        movementEntity.path = mainActivityViewModel.getPath();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "database-name").build();
 
-            map.addPolyline(polylineOptions);
-        }
+                db.movementDao().insertMovement(movementEntity);
+                return null;
+            }
+        }.execute();
+    }
+
+    public void viewWalk(View v){
+        new AsyncTask<Void, Void, MovementEntity>() {
+            @Override
+            protected MovementEntity doInBackground(Void... voids) {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "database-name").build();
+
+                MovementDao movementDao = db.movementDao();
+                return movementDao.getMovementById("Test Movement");
+            }
+
+            @Override
+            protected void onPostExecute(MovementEntity retrievedMovement) {
+                if (retrievedMovement != null) {
+                    List<LatLng> path = retrievedMovement.path;
+                    PolylineOptions polylineOptions = new PolylineOptions()
+                            .addAll(path)
+                            .color(Color.GREEN)
+                            .width(10);
+
+                    map.addPolyline(polylineOptions);
+                } else {
+                    // Handle the case where the movement is not found
+                }
+            }
+        }.execute();
+
     }
 }
 
