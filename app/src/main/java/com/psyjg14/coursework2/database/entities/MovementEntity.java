@@ -15,4 +15,8 @@ public class MovementEntity {
     public String movementName;
 
     public List<LatLng> path;
+
+    public float distanceTravelled;
+
+    public double timeTaken;
 }

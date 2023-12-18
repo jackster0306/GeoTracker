@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -82,7 +83,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LocationService locationService;
 
-    private List<GeofenceEntity> geofences = new ArrayList<>();
+    private float totalDistance = 0.0f;
+    private long startTime = 0;
+    private long endTime = 0;
     @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -351,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .width(10);
 
                         map.addPolyline(polylineOptions);
+                        updateDistanceAndTime(location);
                     }
                 }
             });
@@ -390,8 +394,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onStopWalkPressed(View v){
         MovementEntity movementEntity = new MovementEntity();
-        movementEntity.movementName = "Test Movement";
+        movementEntity.movementName = "Test Movement 2";
         movementEntity.path = mainActivityViewModel.getPath();
+        movementEntity.distanceTravelled = totalDistance;
+        movementEntity.timeTaken = ((endTime - startTime)/1000);
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -402,6 +408,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return null;
             }
         }.execute();
+        Log.d(TAG, "Distance walked: " + totalDistance +", Time taken: " + (endTime - startTime));
     }
 
     public void viewWalk(View v){
@@ -430,6 +437,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }.execute();
+
+    }
+
+
+
+    private void updateDistanceAndTime(Location location){
+        if(mainActivityViewModel.getPath().size() == 1){
+            startTime = location.getTime();
+        } else if(mainActivityViewModel.getPath().size() > 1){
+            List<LatLng> path = mainActivityViewModel.getPath();
+            int pathSize = path.size() -1;
+            float[] results = new float[1];
+            Location.distanceBetween(path.get(pathSize - 1).latitude, path.get(pathSize - 1).longitude, path.get(pathSize).latitude, path.get(pathSize).longitude, results);
+            totalDistance += results[0];
+            endTime = location.getTime();
+        }
+
+//        if(startTime > 0 && endTime > 0){
+//            long duration = endTime - startTime;
+//            long durationSeconds = duration / 1000;
+//            Log.d(TAG, "Duration: " + durationSeconds);
+//        }
 
     }
 }
