@@ -19,4 +19,8 @@ public class MovementEntity {
     public float distanceTravelled;
 
     public double timeTaken;
+
+    public String movementType;
+
+    public long timeStamp;
 }

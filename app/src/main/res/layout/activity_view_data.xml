@@ -1,0 +1,141 @@
+<!-- res/layout/activity_statistics.xml -->
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.psyjg14.coursework2.viewmodel.ViewDataViewModel" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context=".view.ViewDataActivity">
+
+        <!-- Statistics Section -->
+        <TextView
+            android:id="@+id/textDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.distanceTravelled}" />
+
+        <TextView
+            android:id="@+id/textTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.timeTaken}" />
+
+        <TextView
+            android:id="@+id/textSessions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.numOfSessions}" />
+
+        <!-- Filter Section -->
+        <RadioGroup
+            android:id="@+id/timeRadioGroup"
+            android:layout_width="397dp"
+            android:layout_height="wrap_content"
+            android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/yearButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Year" />
+
+            <RadioButton
+                android:id="@+id/monthButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Month" />
+
+            <RadioButton
+                android:id="@+id/weekButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Week" />
+
+            <RadioButton
+                android:id="@+id/dayButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Day" />
+
+            <RadioButton
+                android:id="@+id/totalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Total" />
+
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/typeRadioGroup"
+            android:layout_width="376dp"
+            android:layout_height="wrap_content"
+            android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/walkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Walk" />
+
+            <RadioButton
+                android:id="@+id/runButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Run" />
+
+            <RadioButton
+                android:id="@+id/cycleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cycle" />
+
+            <RadioButton
+                android:id="@+id/allButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="All" />
+
+        </RadioGroup>
+
+
+        <!-- Map Section -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- Map Fragment (You may replace this with a MapView or other map implementation) -->
+            <fragment
+                android:id="@+id/dataMap"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <!-- Button to View All Previous Travels -->
+        <Button
+            android:id="@+id/btnViewAllTravels"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View All Previous Travels"
+            android:background="?attr/colorPrimary"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</layout>

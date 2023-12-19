@@ -52,6 +52,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.dao.MovementDao;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "COMP3018";
     private final int FINE_PERMISSION_CODE = 1;
     private SearchView mapSearchView;
+    private BottomNavigationView navBar;
 
     private MainActivityViewModel mainActivityViewModel;
 
@@ -99,12 +101,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         binding.setLifecycleOwner(this);
 
         mapSearchView = binding.searchView;
+        navBar = binding.bottomNavigation;
+
+        navBar.setSelectedItemId(R.id.mapMenu);
+
+        navBar.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if(itemId == R.id.mapMenu){
+                return true;
+            } else if(itemId == R.id.statsMenu){
+                Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            } else if(itemId == R.id.settingsMenu){
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            }
+            return false;
+        });
 
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "MDPDatabase").build();
 
                 GeofenceDao userDao = db.geofenceDao();
                 mainActivityViewModel.setGeofences(userDao.getAllGeofences());
@@ -289,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     @Override
                                     protected Void doInBackground(Void... voids) {
                                         AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                                                AppDatabase.class, "database-name").build();
+                                                AppDatabase.class, "MDPDatabase").build();
 
                                         GeofenceDao geofenceDao = db.geofenceDao();
                                         geofenceDao.insertGeofence(geofenceEntity);
@@ -394,15 +417,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onStopWalkPressed(View v){
         MovementEntity movementEntity = new MovementEntity();
-        movementEntity.movementName = "Test Movement 2";
+        movementEntity.movementName = "Walk1";
         movementEntity.path = mainActivityViewModel.getPath();
         movementEntity.distanceTravelled = totalDistance;
         movementEntity.timeTaken = ((endTime - startTime)/1000);
+        movementEntity.movementType = "walk";
+        movementEntity.timeStamp = System.currentTimeMillis();
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "MDPDatabase").build();
 
                 db.movementDao().insertMovement(movementEntity);
                 return null;
@@ -416,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             protected MovementEntity doInBackground(Void... voids) {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "MDPDatabase").build();
 
                 MovementDao movementDao = db.movementDao();
                 return movementDao.getMovementById("Test Movement");
