@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable
-            name="travelItem"
-            type="com.psyjg14.coursework2.model.TravelDataItem" />
+
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_height="match_parent"
+        tools:context=".view.SpecificTravel">
 
         <TextView
             android:id="@+id/textName"
@@ -21,38 +18,28 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:text="@{travelItem.name}"/>
+            android:text="@{travelItem.name}" />
 
         <TextView
             android:id="@+id/textDistance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="@{travelItem.distance}"/>
+            android:text="@{travelItem.distance}" />
 
         <TextView
             android:id="@+id/textTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="@{travelItem.timeTaken}"/>
+            android:text="@{travelItem.timeTaken}" />
 
         <TextView
             android:id="@+id/textTravelType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="@{travelItem.travelType}"/>
+            android:text="@{travelItem.travelType}"
 
-        <Button
-            android:id="@+id/showMapButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:onClick="onShowMapPressed"
-            android:text="Show Map"
-            android:tag="@{travelItem.name}"/>
-
-
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
