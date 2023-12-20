@@ -1,141 +1,175 @@
-<!-- res/layout/activity_statistics.xml -->
-
+<?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-        <variable
-            name="viewModel"
-            type="com.psyjg14.coursework2.viewmodel.ViewDataViewModel" />
-    </data>
+<data>
+    <variable
+        name="viewModel"
+        type="com.psyjg14.coursework2.viewmodel.ViewDataViewModel" />
+</data>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
-        tools:context=".view.ViewDataActivity">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.ViewDataActivity">
 
-        <!-- Statistics Section -->
-        <TextView
-            android:id="@+id/textDistance"
+    <!-- Statistics Section -->
+    <TextView
+        android:id="@+id/textDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{viewModel.distanceTravelled}"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{viewModel.timeTaken}"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textDistance" />
+
+    <TextView
+        android:id="@+id/textSessions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{viewModel.numOfSessions}"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textTime" />
+
+    <!-- Filter Section -->
+    <RadioGroup
+        android:id="@+id/timeRadioGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textSessions">
+
+        <RadioButton
+            android:id="@+id/yearButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.distanceTravelled}" />
+            android:text="Year" />
 
-        <TextView
-            android:id="@+id/textTime"
+        <RadioButton
+            android:id="@+id/monthButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.timeTaken}" />
+            android:text="Month" />
 
-        <TextView
-            android:id="@+id/textSessions"
+        <RadioButton
+            android:id="@+id/weekButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.numOfSessions}" />
+            android:text="Week" />
 
-        <!-- Filter Section -->
-        <RadioGroup
-            android:id="@+id/timeRadioGroup"
-            android:layout_width="397dp"
+        <RadioButton
+            android:id="@+id/dayButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
-            android:orientation="horizontal">
+            android:text="Day" />
 
-            <RadioButton
-                android:id="@+id/yearButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Year" />
-
-            <RadioButton
-                android:id="@+id/monthButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Month" />
-
-            <RadioButton
-                android:id="@+id/weekButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Week" />
-
-            <RadioButton
-                android:id="@+id/dayButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Day" />
-
-            <RadioButton
-                android:id="@+id/totalButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Total" />
-
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/typeRadioGroup"
-            android:layout_width="376dp"
+        <RadioButton
+            android:id="@+id/totalButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
-            android:orientation="horizontal">
+            android:checked="true"
+            android:text="Total" />
 
-            <RadioButton
-                android:id="@+id/walkButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Walk" />
+    </RadioGroup>
 
-            <RadioButton
-                android:id="@+id/runButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Run" />
+    <RadioGroup
+        android:id="@+id/typeRadioGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onCheckedChanged="@{(group, checkedId) -> viewModel.onRadioButtonPressed(group, checkedId)}"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timeRadioGroup"
+>
 
-            <RadioButton
-                android:id="@+id/cycleButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cycle" />
+        <RadioButton
+            android:id="@+id/walkButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Walk" />
 
-            <RadioButton
-                android:id="@+id/allButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="All" />
+        <RadioButton
+            android:id="@+id/runButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Run" />
 
-        </RadioGroup>
+        <RadioButton
+            android:id="@+id/cycleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cycle" />
+
+        <RadioButton
+            android:id="@+id/allButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="All" />
 
 
-        <!-- Map Section -->
-        <FrameLayout
+    </RadioGroup>
+
+    <!-- Map Section -->
+
+    <!-- Button to View All Previous Travels -->
+    <FrameLayout
+        android:layout_width="414dp"
+        android:layout_height="466dp"
+        android:layout_weight="1"
+        app:layout_constraintBottom_toTopOf="@+id/btnViewAllTravels"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/typeRadioGroup"
+        app:layout_constraintVertical_bias="0.0">
+
+        <!-- Map Fragment (You may replace this with a MapView or other map implementation) -->
+        <fragment
+            android:id="@+id/dataMap"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="464dp" />
 
-            <!-- Map Fragment (You may replace this with a MapView or other map implementation) -->
-            <fragment
-                android:id="@+id/dataMap"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+    </FrameLayout>
 
-        </FrameLayout>
+    <Button
+        android:id="@+id/btnViewAllTravels"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:background="?attr/colorPrimary"
+        android:onClick="viewAllTravels"
+        android:text="View All Previous Travels"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Button to View All Previous Travels -->
-        <Button
-            android:id="@+id/btnViewAllTravels"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="View All Previous Travels"
-            android:background="?attr/colorPrimary"
-            android:textColor="@android:color/white"
-            android:layout_marginTop="16dp" />
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        style="@style/Widget.MaterialComponents.BottomNavigationView.Colored"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/navbar_menu" />
 
-    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
+

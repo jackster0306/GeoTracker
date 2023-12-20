@@ -5,9 +5,11 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -69,5 +71,10 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
             LatLngBounds pathBounds = builder.build();
             map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
         });
+    }
+
+    public void viewAllTravels(View v){
+        Intent intent = new Intent(this, ViewAllTravelsActivity.class);
+        startActivity(intent);
     }
 }
