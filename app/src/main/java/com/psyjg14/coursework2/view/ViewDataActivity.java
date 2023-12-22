@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
@@ -35,6 +36,8 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
 
     private GoogleMap map;
 
+    private BottomNavigationView navBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +52,34 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.dataMap);
         mapFragment.getMapAsync(this);
         viewDataViewModel.updateDistanceAndTime();
+
+        navBar = binding.dataNavBar;
+
+
+        navBar.setSelectedItemId(R.id.statsMenu);
+
+        navBar.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if(itemId == R.id.mapMenu){
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            } else if(itemId == R.id.statsMenu){
+                return true;
+            } else if(itemId == R.id.settingsMenu){
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            } else if (itemId == R.id.manageMenu){
+                Intent intent = new Intent(this, ManageCurrentJourney.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
@@ -63,6 +94,9 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             for(LatLng latLng : path){
                 builder.include(latLng);
+            }
+            if(path.size() == 0){
+                return;
             }
             LatLng startLatLng = path.get(0);
             LatLng endLatLng = path.get(path.size() - 1);

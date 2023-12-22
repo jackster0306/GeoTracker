@@ -25,6 +25,10 @@ public class MainActivityViewModel extends ViewModel {
 
         private boolean isBound = false;
 
+        private float totalDistance = 0.0f;
+        private long startTime = 0;
+        private long endTime = 0;
+
     private final List<LatLng> path = new ArrayList<>();
 
     List<GeofenceEntity> geofences = new ArrayList<>();
@@ -129,4 +133,27 @@ public class MainActivityViewModel extends ViewModel {
                 return lastLocation;
         }
 
+        public void setTotalDistance(float totalDistance) {
+                this.totalDistance = totalDistance;
+        }
+
+        public float getTotalDistance() {
+                return totalDistance;
+        }
+
+        public void setStartTime(long startTime) {
+                this.startTime = startTime;
+        }
+
+        public long getStartTime() {
+                return startTime;
+        }
+
+        public void setEndTime(long endTime) {
+                this.endTime = endTime;
+        }
+
+        public long getEndTime() {
+                return endTime;
+        }
 }

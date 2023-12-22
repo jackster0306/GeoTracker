@@ -85,9 +85,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LocationService locationService;
 
-    private float totalDistance = 0.0f;
-    private long startTime = 0;
-    private long endTime = 0;
+
     @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +114,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             } else if(itemId == R.id.settingsMenu){
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            } else if (itemId == R.id.manageMenu){
+                Intent intent = new Intent(MainActivity.this, ManageCurrentJourney.class);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
                 return true;
@@ -370,15 +373,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Log.d("COMP3018", "Main Activity - Location changed: " + location);
                         LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-                        mainActivityViewModel.addLatLngToPath(myLocation);
-                        PolylineOptions polylineOptions = new PolylineOptions()
-                                .addAll(mainActivityViewModel.getPath())
-                                .color(Color.GREEN)
-                                .width(10);
-
-                        map.addPolyline(polylineOptions);
-                        updateDistanceAndTime(location);
+//                        mainActivityViewModel.addLatLngToPath(myLocation);
+//                        PolylineOptions polylineOptions = new PolylineOptions()
+//                                .addAll(mainActivityViewModel.getPath())
+//                                .color(Color.GREEN)
+//                                .width(10);
+//
+//                        map.addPolyline(polylineOptions);
+//                        updateDistanceAndTime(location);
                     }
+                }
+
+                @Override
+                public void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String name, String type, List<LatLng> path) {
+
                 }
             });
         }
@@ -410,7 +418,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "OnStop called");
         super.onStop();
         if (mainActivityViewModel.getIsBound()) {
-            unbindService(connection);
+            if(locationService.getIsUpdating()){
+                unbindService(connection);
+            } else{
+                locationService.stopSelf();
+            }
             mainActivityViewModel.setIsBound(false);
         }
     }
@@ -419,8 +431,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MovementEntity movementEntity = new MovementEntity();
         movementEntity.movementName = "Walk1";
         movementEntity.path = mainActivityViewModel.getPath();
-        movementEntity.distanceTravelled = totalDistance;
-        movementEntity.timeTaken = ((endTime - startTime)/1000);
+        movementEntity.distanceTravelled = mainActivityViewModel.getTotalDistance();
+        movementEntity.timeTaken = ((mainActivityViewModel.getEndTime() - mainActivityViewModel.getStartTime())/1000);
         movementEntity.movementType = "walk";
         movementEntity.timeStamp = System.currentTimeMillis();
         new AsyncTask<Void, Void, Void>() {
@@ -433,7 +445,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return null;
             }
         }.execute();
-        Log.d(TAG, "Distance walked: " + totalDistance +", Time taken: " + (endTime - startTime));
     }
 
     public void viewWalk(View v){
@@ -469,22 +480,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void updateDistanceAndTime(Location location){
         if(mainActivityViewModel.getPath().size() == 1){
-            startTime = location.getTime();
+            mainActivityViewModel.setStartTime(location.getTime());
         } else if(mainActivityViewModel.getPath().size() > 1){
             List<LatLng> path = mainActivityViewModel.getPath();
             int pathSize = path.size() -1;
             float[] results = new float[1];
             Location.distanceBetween(path.get(pathSize - 1).latitude, path.get(pathSize - 1).longitude, path.get(pathSize).latitude, path.get(pathSize).longitude, results);
-            totalDistance += results[0];
-            endTime = location.getTime();
+            mainActivityViewModel.setTotalDistance(mainActivityViewModel.getTotalDistance() + results[0]);
+            mainActivityViewModel.setEndTime(location.getTime());
         }
-
-//        if(startTime > 0 && endTime > 0){
-//            long duration = endTime - startTime;
-//            long durationSeconds = duration / 1000;
-//            Log.d(TAG, "Duration: " + durationSeconds);
-//        }
-
     }
 }
 

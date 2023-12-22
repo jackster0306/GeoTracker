@@ -9,6 +9,10 @@
         android:title="Stats"
         android:icon="@drawable/baseline_query_stats_24"/>
     <item
+        android:id="@+id/manageMenu"
+        android:title="Manage"
+        android:icon="@drawable/baseline_directions_walk_24"/>
+    <item
         android:id="@+id/settingsMenu"
         android:title="Settings"
         android:icon="@drawable/baseline_settings_24"/>

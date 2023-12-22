@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ViewAllTravelsViewModel extends ViewModel {
-    private MutableLiveData<List<LatLng>> path = new MutableLiveData<>();
-
     private MutableLiveData<List<TravelDataItem>> movementList = new MutableLiveData<>();
 
     public ViewAllTravelsViewModel() {
@@ -29,36 +27,5 @@ public class ViewAllTravelsViewModel extends ViewModel {
         list.add(dataItem);
         movementList.postValue(list);
     }
-
-//    public MutableLiveData<String> getName() {
-//        return name;
-//    }
-//    public MutableLiveData<String> getDistanceText() {
-//        return distanceText;
-//    }
-//
-//    public MutableLiveData<String> getTimeTakenText() {
-//        return timeTakenText;
-//    }
-//
-//    public MutableLiveData<String> getTravelType() {
-//        return travelType;
-//    }
-//
-//    public MutableLiveData<String> getCompletionTimeText() {
-//        return completionTimeText;
-//    }
-
-    public void setPath(List<LatLng> newPath){
-        path.postValue(newPath);
-    }
-
-    public MutableLiveData<List<LatLng>> getPath() {
-        return path;
-    }
-
-
-
-
 }
 
