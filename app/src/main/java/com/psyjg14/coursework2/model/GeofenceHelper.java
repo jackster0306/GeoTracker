@@ -135,6 +135,27 @@ public class GeofenceHelper {
         }.execute();
     }
 
+    @SuppressLint("StaticFieldLeak")
+    public void removeGeofence(GeofenceEntity geofence, onGeofenceRemovedCallback callback){
+        new AsyncTask<Void, Void, List<GeofenceEntity>>() {
+            @Override
+            protected List<GeofenceEntity> doInBackground(Void... voids) {
+                AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
+                        AppDatabase.class, "MDPDatabase").build();
+
+                GeofenceDao geofenceDao = db.geofenceDao();
+                geofenceDao.deleteGeofence(geofence);
+                return geofenceDao.getAllGeofences();
+            }
+
+            @Override
+            protected void onPostExecute(List<GeofenceEntity> geofences) {
+                super.onPostExecute(geofences);
+                callback.onGeofenceRemoved(geofences);
+            }
+        }.execute();
+    }
+
 
     public interface GetGeofenceCallback{
         void GeofenceCallback(List<GeofenceEntity> geofences);
@@ -142,5 +163,9 @@ public class GeofenceHelper {
 
     public interface onGeofenceAddedCallback{
         void onGeofenceAdded();
+    }
+
+    public interface onGeofenceRemovedCallback{
+        void onGeofenceRemoved(List<GeofenceEntity> geofences);
     }
 }

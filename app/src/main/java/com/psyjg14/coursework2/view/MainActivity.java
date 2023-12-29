@@ -273,20 +273,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         map.setOnCircleClickListener(circle -> {
             String geofenceName = circle.getTag().toString();
             //SETUP DIALOG THAT SHOWS, DISPLAYING NAME AND CLASSIFICATION WITH A DELETE BUTTON
-            new Thread(() -> {
-                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
-
-                GeofenceDao geofenceDao = db.geofenceDao();
-                GeofenceEntity geofence = geofenceDao.getGeofenceByName(geofenceName);
-                showGeofenceDetails(geofence);
-            }).start();
+            geofenceHelper.getGeofences(new GeofenceHelper.GetGeofenceCallback() {
+                @Override
+                public void GeofenceCallback(List<GeofenceEntity> geofences) {
+                    for (GeofenceEntity geofence : geofences) {
+                        if (geofence.name.equals(geofenceName)) {
+                            showGeofenceDetails(geofence);
+                        }
+                    }
+                }
+            });
+//            new Thread(() -> {
+//                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+//                        AppDatabase.class, "MDPDatabase").build();
+//
+//                GeofenceDao geofenceDao = db.geofenceDao();
+//                GeofenceEntity geofence = geofenceDao.getGeofenceByName(geofenceName);
+//                showGeofenceDetails(geofence);
+//            }).start();
         });
     }
 
     private void updateGeofencesOnMap(){
-        runOnUiThread(
-                () -> {
                     map.clear();
                     Log.d("COMP3018", "updateGeofencesOnMap");
                     Log.d("COMP3018", "geofences size: " + mainActivityViewModel.getGeofences().size());
@@ -311,13 +319,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         circle.setClickable(true);
                     }
-                }
-        );
 
     }
 
     private void showGeofenceDetails(GeofenceEntity geofence){
-        runOnUiThread(() -> {
+
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
 
@@ -326,24 +332,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             builder.setView(detailsBinding.getRoot());
 
 
-            detailsBinding.deleteGeofenceButton.setOnClickListener(v ->{
-                new Thread(() -> {
-                    AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                            AppDatabase.class, "MDPDatabase").build();
-
-                    GeofenceDao geofenceDao = db.geofenceDao();
-                    geofenceDao.deleteGeofence(geofence);
-                    mainActivityViewModel.setGeofences(geofenceDao.getAllGeofences());
-                    Log.d("COMP3018", "geofence deleted");
-                    updateGeofencesOnMap();
-                }).start();
-            });
 
             AlertDialog dialog = builder.create();
             dialog.show();
 
-            detailsBinding.closeDialogButton.setOnClickListener(view -> dialog.cancel());
+        detailsBinding.deleteGeofenceButton.setOnClickListener(v ->{
+            geofenceHelper.removeGeofence(geofence, new GeofenceHelper.onGeofenceRemovedCallback() {
+                @Override
+                public void onGeofenceRemoved(List<GeofenceEntity> geofences) {
+                    mainActivityViewModel.setGeofences(geofences);
+                    updateGeofencesOnMap();
+                    dialog.cancel();
+                }
+            });
         });
+
+            detailsBinding.closeDialogButton.setOnClickListener(view -> dialog.cancel());
     }
 
 
