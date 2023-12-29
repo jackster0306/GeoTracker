@@ -1,0 +1,54 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable
+            name="geofence"
+            type="com.psyjg14.coursework2.database.entities.GeofenceEntity" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/closeDialogButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="16dp"
+            android:background="?android:selectableItemBackground"
+            android:contentDescription="Close Dialog"/>
+
+        <TextView
+            android:id="@+id/geofenceNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/closeDialogButton"
+            android:layout_alignTop="@id/closeDialogButton"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:padding="16dp"
+            android:text="@{geofence.name}" />
+
+        <TextView
+            android:id="@+id/geofenceClassificationTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/geofenceNameTextView"
+            android:textSize="16sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:text="@{geofence.classification}" />
+
+        <Button
+            android:id="@+id/deleteGeofenceButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/geofenceClassificationTextView"
+            android:text="Delete Geofence"
+            android:textColor="@android:color/white"
+            android:layout_margin="16dp" />
+    </RelativeLayout>
+</layout>

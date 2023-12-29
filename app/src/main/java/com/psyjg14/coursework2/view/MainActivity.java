@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,6 +22,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.InputType;
 import android.util.Log;
 
 import androidx.appcompat.widget.SearchView;
@@ -30,6 +32,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 
@@ -45,8 +51,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -58,6 +66,7 @@ import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
+import com.psyjg14.coursework2.databinding.GeofenceDetailsLayoutBinding;
 import com.psyjg14.coursework2.model.GeofenceBroadcastReceiver;
 import com.psyjg14.coursework2.model.GeofenceHelper;
 import com.psyjg14.coursework2.R;
@@ -68,7 +77,7 @@ import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
     private static final String TAG = "COMP3018";
     private final int FINE_PERMISSION_CODE = 1;
     private SearchView mapSearchView;
@@ -105,19 +114,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         navBar.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if(itemId == R.id.mapMenu){
+            if (itemId == R.id.mapMenu) {
                 return true;
-            } else if(itemId == R.id.statsMenu){
+            } else if (itemId == R.id.statsMenu) {
                 Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
                 return true;
-            } else if(itemId == R.id.settingsMenu){
+            } else if (itemId == R.id.settingsMenu) {
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
                 return true;
-            } else if (itemId == R.id.manageMenu){
+            } else if (itemId == R.id.manageMenu) {
                 Intent intent = new Intent(MainActivity.this, ManageCurrentJourney.class);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
@@ -139,45 +148,65 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }.execute();
 
 
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        if(!mainActivityViewModel.getIsBound()){
-            Intent intent = new Intent(MainActivity.this, LocationService.class);
-            bindService(intent, connection, Context.BIND_AUTO_CREATE);
-        }
-
-        Log.d(TAG, "Starting service");
-        Intent intent = new Intent(MainActivity.this, LocationService.class);
-        startService(intent);
+        geofenceHelper = new GeofenceHelper(this, this);
 
 
-        geofencingClient = LocationServices.getGeofencingClient(this);
-        geofenceHelper = new GeofenceHelper();
-
-
-        // Observe the LiveData in the ViewModel
         mainActivityViewModel.getAddingGeofence().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean addingGeofence) {
-                if(mainActivityViewModel.getAddingGeofenceAsBool()){
-                    Toast.makeText(MainActivity.this, "Click on the map to add a geofence", Toast.LENGTH_SHORT).show();
-                } else{
-                    if(mainActivityViewModel.getGeofenceMarker() != null){
-                        Toast.makeText(MainActivity.this, "Geofence added", Toast.LENGTH_SHORT).show();
-                        addGeofence(mainActivityViewModel.getGeofenceMarker().getPosition(), GEOFENCE_RADIUS);
-                        CircleOptions circleOptions = new CircleOptions()
-                                .center(mainActivityViewModel.getGeofenceMarker().getPosition())
-                                .radius(GEOFENCE_RADIUS) // Set the geofence radius
-                                .strokeColor(Color.RED) // Set the stroke color. Make it changable based on good/bad location reminders
-                                .fillColor(Color.argb(70, 255, 0, 0)); // Set the fill color with alpha
-                        map.addCircle(circleOptions);
-                        Log.d("COMP3018", "setting geofence marker to null");
+                Marker geofenceMarker = mainActivityViewModel.getGeofenceMarker();
+                if(mainActivityViewModel.getGeofenceMarker() != null){
+                    mainActivityViewModel.removeGeofenceMarker();
+                }
 
-                    } else{
+                if (mainActivityViewModel.getAddingGeofenceAsBool()) {
+                    Toast.makeText(MainActivity.this, "Click on the map to add a geofence", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (geofenceMarker != null) {
+                        Log.d("COMP3018", "showGeofenceDialog");
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setTitle("Add Geofence");
+
+                        View dialogView = getLayoutInflater().inflate(R.layout.geofence_dialog_layout, null);
+                        builder.setView(dialogView);
+
+                        EditText nameInput = dialogView.findViewById(R.id.geofenceNameEditText);
+                        Spinner spinner = dialogView.findViewById(R.id.geofenceClassificationSpinner);
+
+                        builder.setPositiveButton("OK", (dialog, which) -> {
+                            String geofenceName = nameInput.getText().toString();
+                            String geofenceClassification = spinner.getSelectedItem().toString();
+                            Log.d("COMP3018", "geofenceName: " + geofenceName);
+                            if (geofenceName.equals("")) {
+                                Toast.makeText(MainActivity.this, "Please enter a name", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(MainActivity.this, "Geofence added", Toast.LENGTH_SHORT).show();
+                                geofenceHelper.addGeofence(geofenceName, geofenceClassification, geofenceMarker.getPosition(), GEOFENCE_RADIUS, new GeofenceHelper.onGeofenceAddedCallback() {
+                                    @Override
+                                    public void onGeofenceAdded() {
+                                        geofenceHelper.getGeofences(new GeofenceHelper.GetGeofenceCallback() {
+                                            @Override
+                                            public void GeofenceCallback(List<GeofenceEntity> geofences) {
+                                                Log.d("COMP3018", "GeofenceCallback: " + geofences.size());
+                                                mainActivityViewModel.setGeofences(geofences);
+                                                updateGeofencesOnMap();
+                                            }
+                                        });
+                                    }
+                                });
+
+                            }
+                        });
+
+                        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+                        builder.show();
+                    } else {
                         Log.d("COMP3018", "getFirstPressed: " + mainActivityViewModel.getGeofenceFirstPressed());
-                        if(!mainActivityViewModel.getGeofenceFirstPressed()){
+                        if (!mainActivityViewModel.getGeofenceFirstPressed()) {
                             Toast.makeText(MainActivity.this, "No geofence added", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -185,10 +214,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
         }
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, FINE_PERMISSION_CODE);
         }
     }
@@ -239,17 +268,84 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         map.setOnMapClickListener(this);
-        for(GeofenceEntity geofence: mainActivityViewModel.getGeofences()){
-            LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
-            CircleOptions circleOptions = new CircleOptions()
-                    .center(latLng)
-                    .radius(geofence.radius) // Set the geofence radius
-                    .strokeColor(Color.RED) // Set the stroke color. Make it changable based on good/bad location reminders
-                    .fillColor(Color.argb(70, 255, 0, 0)); // Set the fill color with alpha
-            map.addCircle(circleOptions);
-        }
+
+        updateGeofencesOnMap();
+        map.setOnCircleClickListener(circle -> {
+            String geofenceName = circle.getTag().toString();
+            //SETUP DIALOG THAT SHOWS, DISPLAYING NAME AND CLASSIFICATION WITH A DELETE BUTTON
+            new Thread(() -> {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "MDPDatabase").build();
+
+                GeofenceDao geofenceDao = db.geofenceDao();
+                GeofenceEntity geofence = geofenceDao.getGeofenceByName(geofenceName);
+                showGeofenceDetails(geofence);
+            }).start();
+        });
+    }
+
+    private void updateGeofencesOnMap(){
+        runOnUiThread(
+                () -> {
+                    map.clear();
+                    Log.d("COMP3018", "updateGeofencesOnMap");
+                    Log.d("COMP3018", "geofences size: " + mainActivityViewModel.getGeofences().size());
+                    for (GeofenceEntity geofence : mainActivityViewModel.getGeofences()) {
+                        LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
+                        int geofenceColour;
+                        if(geofence.classification.equals("Good")) {
+                            geofenceColour = Color.GREEN;
+                        } else if(geofence.classification.equals("Bad")) {
+                            geofenceColour = Color.RED;
+                        } else {
+                            geofenceColour = Color.YELLOW;
+                        }
+                        CircleOptions circleOptions = new CircleOptions()
+                                .center(latLng)
+                                .radius(geofence.radius) // Set the geofence radius
+                                .strokeColor(Color.BLACK)
+                                .fillColor(Color.argb(70, Color.red(geofenceColour), Color.green(geofenceColour), Color.blue(geofenceColour)));
+                        Circle circle = map.addCircle(circleOptions);
+
+                        circle.setTag(geofence.name);
+
+                        circle.setClickable(true);
+                    }
+                }
+        );
 
     }
+
+    private void showGeofenceDetails(GeofenceEntity geofence){
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+
+            GeofenceDetailsLayoutBinding detailsBinding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.geofence_details_layout, null, false);
+            detailsBinding.setGeofence(geofence);
+            builder.setView(detailsBinding.getRoot());
+
+
+            detailsBinding.deleteGeofenceButton.setOnClickListener(v ->{
+                new Thread(() -> {
+                    AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                            AppDatabase.class, "MDPDatabase").build();
+
+                    GeofenceDao geofenceDao = db.geofenceDao();
+                    geofenceDao.deleteGeofence(geofence);
+                    mainActivityViewModel.setGeofences(geofenceDao.getAllGeofences());
+                    Log.d("COMP3018", "geofence deleted");
+                    updateGeofencesOnMap();
+                }).start();
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            detailsBinding.closeDialogButton.setOnClickListener(view -> dialog.cancel());
+        });
+    }
+
 
     @Override
     public void onMapClick(LatLng latLng) {
@@ -259,15 +355,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             MarkerOptions options = new MarkerOptions().position(latLng).title("Geofence Location");
             //Change colour of marker
             options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            if(mainActivityViewModel.getGeofenceMarker() != null){
+            if (mainActivityViewModel.getGeofenceMarker() != null) {
                 mainActivityViewModel.removeGeofenceMarker();
             }
             mainActivityViewModel.setGeofenceMarker(map.addMarker(options));
+            Log.d("COMP3018", "Map Clicked, Geofence Marker: " + mainActivityViewModel.getGeofenceMarker());
         }
     }
 
     /**************************************************************************
-     *  Location code
+     *  Requests code
      **************************************************************************/
 
 
@@ -276,128 +373,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationService.getLastLocation();
+                //locationService.getLastLocation();
                 mainActivityViewModel.setRequestingLocationUpdates(true);
             } else {
                 Toast.makeText(this, "Permission denied, please allow the permission", Toast.LENGTH_SHORT).show();
             }
         }
     }
-
-
-    /**************************************************************************
-     *  Geofence code
-     **************************************************************************/
-
-    private void addGeofence(LatLng latLng, float radius) {
-        Geofence geofence = geofenceHelper.createGeofence(latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
-        GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
-                .addGeofence(geofence)
-                .build();
-        PendingIntent pendingIntent = getGeofencePendingIntent();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED){
-                geofencingClient.addGeofences(geofencingRequest, pendingIntent)
-                        .addOnSuccessListener(this, new OnSuccessListener<Void>() {
-                            @SuppressLint("StaticFieldLeak")
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d("COMP3018", "onSuccess: Geofence Added...");
-                                //if(mainActivityViewModel.getGeofenceMarker() != null){
-                                    Log.d("COMP3018", "onSuccess: Adding circle");
-                                GeofenceEntity geofenceEntity = new GeofenceEntity();
-                                geofenceEntity.latitude = latLng.latitude;
-                                geofenceEntity.longitude = latLng.longitude;
-                                geofenceEntity.radius = radius;
-                                geofenceEntity.reminderMessage = "Reminder Message";
-                                geofenceEntity.transitionType = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... voids) {
-                                        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                                                AppDatabase.class, "MDPDatabase").build();
-
-                                        GeofenceDao geofenceDao = db.geofenceDao();
-                                        geofenceDao.insertGeofence(geofenceEntity);
-                                        return null;
-                                    }
-                                }.execute();
-
-                                    //mainActivityViewModel.setGeofenceMarker(null);
-                               // }
-                            }
-                        })
-                        .addOnFailureListener(this, new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.d("COMP3018", "onFailure: " + e.getMessage());
-                            }
-                        });
-            } else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, FINE_PERMISSION_CODE);
-            }
-
-        }
-
-    }
-
-    private PendingIntent getGeofencePendingIntent() {
-        Log.d("COMP3018", "getGeofencePendingIntent: ");
-        Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
-        return pendingIntent;
-    }
-
-
-    /**************************************************************************
-     *  Location Service code
-     **************************************************************************/
-
-
-
-    private ServiceConnection connection = new ServiceConnection() {
-
-        // Called when a client binds to the service
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "onServiceConnected");
-            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
-            locationService = binder.getService();
-            Log.d(TAG, "isBound set to true");
-            mainActivityViewModel.setIsBound(true);
-
-            locationService.setCallback(new LocationService.MyLocationCallback() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if(map != null && location != null){
-                        Log.d("COMP3018", "Main Activity - Location changed: " + location);
-                        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-//                        mainActivityViewModel.addLatLngToPath(myLocation);
-//                        PolylineOptions polylineOptions = new PolylineOptions()
-//                                .addAll(mainActivityViewModel.getPath())
-//                                .color(Color.GREEN)
-//                                .width(10);
-//
-//                        map.addPolyline(polylineOptions);
-//                        updateDistanceAndTime(location);
-                    }
-                }
-
-                @Override
-                public void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String name, String type, List<LatLng> path) {
-
-                }
-            });
-        }
-
-        // Called when a client unbinds from the service
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mainActivityViewModel.setIsBound(false);
-        }
-    };
-
 
     /**
      * Called when the activity is started.
@@ -406,8 +388,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStart() {
         Log.d(TAG, "OnStart called");
         super.onStart();
-        Intent intent = new Intent(this, LocationService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -417,79 +397,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStop() {
         Log.d(TAG, "OnStop called");
         super.onStop();
-        if (mainActivityViewModel.getIsBound()) {
-            if(locationService.getIsUpdating()){
-                unbindService(connection);
-            } else{
-                locationService.stopSelf();
-            }
-            mainActivityViewModel.setIsBound(false);
-        }
     }
 
-    public void onStopWalkPressed(View v){
-        MovementEntity movementEntity = new MovementEntity();
-        movementEntity.movementName = "Walk1";
-        movementEntity.path = mainActivityViewModel.getPath();
-        movementEntity.distanceTravelled = mainActivityViewModel.getTotalDistance();
-        movementEntity.timeTaken = ((mainActivityViewModel.getEndTime() - mainActivityViewModel.getStartTime())/1000);
-        movementEntity.movementType = "walk";
-        movementEntity.timeStamp = System.currentTimeMillis();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
-
-                db.movementDao().insertMovement(movementEntity);
-                return null;
-            }
-        }.execute();
-    }
-
-    public void viewWalk(View v){
-        new AsyncTask<Void, Void, MovementEntity>() {
-            @Override
-            protected MovementEntity doInBackground(Void... voids) {
-                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
-
-                MovementDao movementDao = db.movementDao();
-                return movementDao.getMovementById("Test Movement");
-            }
-
-            @Override
-            protected void onPostExecute(MovementEntity retrievedMovement) {
-                if (retrievedMovement != null) {
-                    List<LatLng> path = retrievedMovement.path;
-                    PolylineOptions polylineOptions = new PolylineOptions()
-                            .addAll(path)
-                            .color(Color.GREEN)
-                            .width(10);
-
-                    map.addPolyline(polylineOptions);
-                } else {
-                    // Handle the case where the movement is not found
-                }
-            }
-        }.execute();
+    private void showGeofenceDialog(){
 
     }
 
-
-
-    private void updateDistanceAndTime(Location location){
-        if(mainActivityViewModel.getPath().size() == 1){
-            mainActivityViewModel.setStartTime(location.getTime());
-        } else if(mainActivityViewModel.getPath().size() > 1){
-            List<LatLng> path = mainActivityViewModel.getPath();
-            int pathSize = path.size() -1;
-            float[] results = new float[1];
-            Location.distanceBetween(path.get(pathSize - 1).latitude, path.get(pathSize - 1).longitude, path.get(pathSize).latitude, path.get(pathSize).longitude, results);
-            mainActivityViewModel.setTotalDistance(mainActivityViewModel.getTotalDistance() + results[0]);
-            mainActivityViewModel.setEndTime(location.getTime());
-        }
-    }
 }
 
 

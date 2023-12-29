@@ -29,35 +29,22 @@ public class MainActivityViewModel extends ViewModel {
         private long startTime = 0;
         private long endTime = 0;
 
-    private final List<LatLng> path = new ArrayList<>();
+        private final List<LatLng> path = new ArrayList<>();
 
-    List<GeofenceEntity> geofences = new ArrayList<>();
+        List<GeofenceEntity> geofences = new ArrayList<>();
 
 
-    public List<GeofenceEntity> getGeofences() {
-        return geofences;
-    }
+        public List<GeofenceEntity> getGeofences() {
+            return geofences;
+        }
 
-    public void setGeofences(List<GeofenceEntity> geofences) {
-        this.geofences = geofences;
-    }
+        public void setGeofences(List<GeofenceEntity> geofences) {
+            this.geofences = geofences;
+        }
 
-    public void addGeofenceToList(GeofenceEntity geofence) {
-        geofences.add(geofence);
-    }
-
-    public void removeGeofenceFromList(GeofenceEntity geofence) {
-        geofences.remove(geofence);
-    }
-
-    public List<LatLng> getPath() {
-        return path;
-    }
-
-    public void addLatLngToPath(LatLng latLng) {
-        path.add(latLng);
-    }
-
+        public List<LatLng> getPath() {
+            return path;
+        }
 
 
         public boolean getGeofenceFirstPressed() {
@@ -81,9 +68,12 @@ public class MainActivityViewModel extends ViewModel {
         }
 
 
-    public LiveData<Boolean> getAddingGeofence() {
-        return addingGeofence;
-    }
+        public LiveData<Boolean> getAddingGeofence() {
+            return addingGeofence;
+        }
+        public void setAddingGeofence(boolean value) {
+            addingGeofence.setValue(value);
+         }
 
         public boolean getAddingGeofenceAsBool() {
                 return addingGeofence.getValue();

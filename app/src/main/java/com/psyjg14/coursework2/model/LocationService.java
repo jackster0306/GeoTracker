@@ -113,23 +113,9 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "*************************onStartCommand: LocationService*************************");
 
-        //PendingIntent pendingIntent = getLocationPendingIntent();
-
 //        new Thread(()-> {
             startLocationUpdates(createLocationRequest());
 //        }).start();
-
-
-
-
-//        while(isUpdating){
-//            try {
-//                Log.d(TAG, "*************************IN WHILE*************************");
-//                Thread.sleep(3000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
 
 
         return START_STICKY;
@@ -157,7 +143,6 @@ public class LocationService extends Service {
         Log.d(TAG, "startLocationUpdates: LocationService");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-            //fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent);
         } else {
             Log.e(TAG, "Location permission not granted");
         }
@@ -245,20 +230,4 @@ public class LocationService extends Service {
         Log.d(TAG, "getIsUpdating: LocationService");
         return isUpdating;
     }
-
-
-//    private PendingIntent getLocationPendingIntent() {
-//        Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
-//        intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
-//        intent.putExtra("name", name);
-//        intent.putExtra("type", type);
-//        intent.putExtra("startTime", startTime);
-//        intent.putExtra("endTime", endTime);
-//        intent.putExtra("distanceTravelled", distanceTravelled);
-//        intent.putExtra("path", (ArrayList<LatLng>) path);
-//
-//
-//
-//        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
-//    }
 }

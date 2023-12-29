@@ -13,4 +13,6 @@ public class GeofenceEntity {
     public float radius;
     public String reminderMessage;
     public int transitionType;
+    public String name;
+    public String classification;
 }
