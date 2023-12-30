@@ -17,6 +17,9 @@ public interface GeofenceDao {
     @Query("SELECT * FROM geofenceentity WHERE name = :name")
     GeofenceEntity getGeofenceByName(String name);
 
+    @Query("SELECT * FROM geofenceentity WHERE geofenceID = :geofenceID")
+    GeofenceEntity getGeofenceByID(String geofenceID);
+
     @Insert
     void insertGeofence(GeofenceEntity geofenceEntity);
 

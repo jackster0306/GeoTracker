@@ -37,10 +37,10 @@ public class GeofenceHelper {
         geofencingClient = com.google.android.gms.location.LocationServices.getGeofencingClient(context);
     }
 
-    private Geofence createGeofence(String name, String classification, LatLng latLng, float radius, int transitionTypes) {
+    private Geofence createGeofence(String geofenceID,LatLng latLng, float radius, int transitionTypes) {
         Log.d("COMP3018", "Latitude: " + latLng.latitude + ", Longitude: " + latLng.longitude + ", Radius: " + radius + ", Transition Types: " + transitionTypes);
         return new Geofence.Builder()
-                .setRequestId(generateRequestId())
+                .setRequestId(geofenceID)
                 .setCircularRegion(latLng.latitude, latLng.longitude, radius)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .setTransitionTypes(transitionTypes)
@@ -55,8 +55,9 @@ public class GeofenceHelper {
      *  Geofence code
      **************************************************************************/
 
-    public void addGeofence(String name, String classification, LatLng latLng, float radius, onGeofenceAddedCallback callback) {
-        Geofence geofence = createGeofence(name, classification,latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+    public void addGeofence(String name, String classification, LatLng latLng, float radius, String geofenceNote, onGeofenceAddedCallback callback) {
+        String geofenceID = generateRequestId();
+        Geofence geofence = createGeofence(geofenceID,latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
                 .addGeofence(geofence)
                 .build();
@@ -71,6 +72,7 @@ public class GeofenceHelper {
                                 Log.d("COMP3018", "onSuccess: Geofence Added...");
                                 Log.d("COMP3018", "onSuccess: Adding circle");
                                 GeofenceEntity geofenceEntity = new GeofenceEntity();
+                                geofenceEntity.geofenceID = geofenceID;
                                 geofenceEntity.latitude = latLng.latitude;
                                 geofenceEntity.longitude = latLng.longitude;
                                 geofenceEntity.radius = radius;
@@ -78,6 +80,7 @@ public class GeofenceHelper {
                                 geofenceEntity.transitionType = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
                                 geofenceEntity.name = name;
                                 geofenceEntity.classification = classification;
+                                geofenceEntity.geofenceNote = geofenceNote;
                                 new AsyncTask<Void, Void, Void>() {
                                     @Override
                                     protected Void doInBackground(Void... voids) {

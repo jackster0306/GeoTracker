@@ -132,7 +132,9 @@ public class ViewDataViewModel extends AndroidViewModel {
         MutableLiveData<List<LatLng>> path = new MutableLiveData<>();
         new Thread(() -> {
             MovementEntity entity = movementDao.getLastEntity();
-            path.postValue(entity.path);
+            if(entity != null){
+                path.postValue(entity.path);
+            }
         }).start();
         return path;
     }

@@ -36,6 +36,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -166,44 +167,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(MainActivity.this, "Click on the map to add a geofence", Toast.LENGTH_SHORT).show();
                 } else {
                     if (geofenceMarker != null) {
-                        Log.d("COMP3018", "showGeofenceDialog");
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("Add Geofence");
-
-                        View dialogView = getLayoutInflater().inflate(R.layout.geofence_dialog_layout, null);
-                        builder.setView(dialogView);
-
-                        EditText nameInput = dialogView.findViewById(R.id.geofenceNameEditText);
-                        Spinner spinner = dialogView.findViewById(R.id.geofenceClassificationSpinner);
-
-                        builder.setPositiveButton("OK", (dialog, which) -> {
-                            String geofenceName = nameInput.getText().toString();
-                            String geofenceClassification = spinner.getSelectedItem().toString();
-                            Log.d("COMP3018", "geofenceName: " + geofenceName);
-                            if (geofenceName.equals("")) {
-                                Toast.makeText(MainActivity.this, "Please enter a name", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(MainActivity.this, "Geofence added", Toast.LENGTH_SHORT).show();
-                                geofenceHelper.addGeofence(geofenceName, geofenceClassification, geofenceMarker.getPosition(), GEOFENCE_RADIUS, new GeofenceHelper.onGeofenceAddedCallback() {
-                                    @Override
-                                    public void onGeofenceAdded() {
-                                        geofenceHelper.getGeofences(new GeofenceHelper.GetGeofenceCallback() {
-                                            @Override
-                                            public void GeofenceCallback(List<GeofenceEntity> geofences) {
-                                                Log.d("COMP3018", "GeofenceCallback: " + geofences.size());
-                                                mainActivityViewModel.setGeofences(geofences);
-                                                updateGeofencesOnMap();
-                                            }
-                                        });
-                                    }
-                                });
-
-                            }
-                        });
-
-                        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-                        builder.show();
+                        showGeofenceDialog(geofenceMarker);
                     } else {
                         Log.d("COMP3018", "getFirstPressed: " + mainActivityViewModel.getGeofenceFirstPressed());
                         if (!mainActivityViewModel.getGeofenceFirstPressed()) {
@@ -403,8 +367,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onStop();
     }
 
-    private void showGeofenceDialog(){
+    private void showGeofenceDialog(Marker geofenceMarker) {
+        Log.d("COMP3018", "showGeofenceDialog");
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Add Geofence");
 
+        View dialogView = getLayoutInflater().inflate(R.layout.geofence_dialog_layout, null);
+        builder.setView(dialogView);
+
+        TextView nameInput = dialogView.findViewById(R.id.geofenceNameEditText);
+        Spinner spinner = dialogView.findViewById(R.id.geofenceClassificationSpinner);
+        TextView noteInput = dialogView.findViewById(R.id.geofenceNoteEditText);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String geofenceName = nameInput.getText().toString();
+            String geofenceClassification = spinner.getSelectedItem().toString();
+            String geofenceNote = noteInput.getText().toString();
+            Boolean isDuplicate = false;
+            Log.d("COMP3018", "geofenceName: " + geofenceName);
+            for(GeofenceEntity geofence : mainActivityViewModel.getGeofences()){
+                Log.d("COMP3018", "Geofence Name from Current Geofences: " + geofence.name + " geofenceName to add: " + geofenceName);
+                if(geofence.name.equals(geofenceName)){
+                    isDuplicate = true;
+                }
+            }
+            if (geofenceName.equals("")) {
+                Toast.makeText(MainActivity.this, "Please enter a name", Toast.LENGTH_SHORT).show();
+            } else if(isDuplicate){
+                Toast.makeText(MainActivity.this, "Geofence name already exists", Toast.LENGTH_SHORT).show();
+                mainActivityViewModel.onGeofenceButtonPressed();
+                showGeofenceDialog(geofenceMarker);
+            }
+            else {
+                Toast.makeText(MainActivity.this, "Geofence added", Toast.LENGTH_SHORT).show();
+                geofenceHelper.addGeofence(geofenceName, geofenceClassification, geofenceMarker.getPosition(), GEOFENCE_RADIUS, geofenceNote,new GeofenceHelper.onGeofenceAddedCallback() {
+                    @Override
+                    public void onGeofenceAdded() {
+                        geofenceHelper.getGeofences(new GeofenceHelper.GetGeofenceCallback() {
+                            @Override
+                            public void GeofenceCallback(List<GeofenceEntity> geofences) {
+                                Log.d("COMP3018", "GeofenceCallback: " + geofences.size());
+                                mainActivityViewModel.setGeofences(geofences);
+                                updateGeofencesOnMap();
+                            }
+                        });
+                    }
+                });
+
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 
 }

@@ -84,7 +84,7 @@ public class MainActivityViewModel extends ViewModel {
                 addingGeofence.setValue(!(addingGeofence.getValue()));
             }
             geofenceFirstPressed = false;
-            geofenceMarker = null;
+            //geofenceMarker = null;
         }
 
         public boolean getRequestingLocationUpdates() {

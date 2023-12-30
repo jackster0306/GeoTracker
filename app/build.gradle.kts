@@ -10,7 +10,8 @@ android {
     defaultConfig {
         applicationId = "com.psyjg14.coursework2"
         minSdk = 32
-        targetSdk = 33
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk = 32
         versionCode = 1
         versionName = "1.0"
 

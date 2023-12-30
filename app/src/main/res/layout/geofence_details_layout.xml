@@ -46,9 +46,20 @@
             android:id="@+id/deleteGeofenceButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/geofenceClassificationTextView"
+            android:layout_below="@id/geofenceNoteTextView"
             android:text="Delete Geofence"
             android:textColor="@android:color/white"
             android:layout_margin="16dp" />
+
+        <TextView
+            android:id="@+id/geofenceNoteTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/geofenceClassificationTextView"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:text="@{geofence.geofenceNote}"
+            android:textSize="16sp" />
     </RelativeLayout>
 </layout>

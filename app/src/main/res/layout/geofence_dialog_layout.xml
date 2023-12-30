@@ -12,6 +12,18 @@
         android:layout_height="wrap_content"
         android:hint="Geofence Name"/>
 
+    <EditText
+        android:id="@+id/geofenceNoteEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Note for this Location"
+        android:paddingTop="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:text="Classification:"/>
     <Spinner
         android:id="@+id/geofenceClassificationSpinner"
         android:layout_width="match_parent"
