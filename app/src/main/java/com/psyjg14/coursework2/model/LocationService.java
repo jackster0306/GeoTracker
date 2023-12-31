@@ -4,9 +4,7 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -50,11 +48,11 @@ public class LocationService extends Service {
 
     private boolean isUpdating = false;
 
-    private Location lastLocation;  // Track the last location
+    // Track the last location
     private float distanceTravelled = 0;  // Track the total distance traveled
     private long startTime;  // Track the start time
     private long endTime;  // Track the end time
-    private String name;
+
     private String type;
     private List<LatLng> path = new ArrayList<>();
 
@@ -63,7 +61,7 @@ public class LocationService extends Service {
     public interface MyLocationCallback {
         void onLocationChanged(Location location);
 
-        void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String name, String type, List<LatLng> path);
+        void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String type, List<LatLng> path);
     }
 
     @Nullable
@@ -155,23 +153,7 @@ public class LocationService extends Service {
         endTime = System.currentTimeMillis();
         stopForeground(true);
         if (myLocationCallback != null) {
-            myLocationCallback.onStoppedJourney(distanceTravelled, startTime, endTime, name, type, path);
-        }
-    }
-
-    public void getLastLocation() {
-        Log.d(TAG, "getLastLocation: LocationService");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    Log.d(TAG, "Last Location: " + location);
-                    myLocationCallback.onLocationChanged(location);
-                } else {
-                    Log.d(TAG, "Last Location: null");
-                }
-            });
-        } else {
-            Log.e(TAG, "Location permission not granted");
+            myLocationCallback.onStoppedJourney(distanceTravelled, startTime, endTime, type, path);
         }
     }
 
@@ -181,17 +163,6 @@ public class LocationService extends Service {
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                 .setMinUpdateDistanceMeters(50)
                 .build();
-    }
-
-    public Location getCurrentLocation() {
-        Log.d(TAG, "getCurrentLocation: LocationService");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            return fusedLocationProviderClient.getLastLocation().getResult();
-        }
-        else{
-            return null;
-        }
-
     }
 
     public void startTracking(String type){
@@ -224,7 +195,6 @@ public class LocationService extends Service {
         } else{
             path.add(new LatLng(newLocation.getLatitude(), newLocation.getLongitude()));
         }
-        lastLocation = newLocation;
     }
 
     public boolean getIsUpdating(){

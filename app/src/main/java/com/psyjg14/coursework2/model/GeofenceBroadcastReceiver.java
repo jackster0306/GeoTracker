@@ -16,21 +16,17 @@ import androidx.core.app.NotificationCompat;
 import androidx.room.Room;
 
 import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofenceStatusCodes;
 import com.google.android.gms.location.GeofencingEvent;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.view.MainActivity;
 
-import java.util.List;
+import java.util.Objects;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     private static final String TAG = "COMP3018";
     private static final String CHANNEL_ID = "Geofence Channel";
-
-    // Notification ID
-    private static final int NOTIFICATION_ID = 1;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -59,16 +55,14 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                         AppDatabase.class, "MDPDatabase").build();
                 GeofenceDao geofenceDao = db.geofenceDao();
 
-                Geofence geofenceTriggered = geofencingEvent.getTriggeringGeofences().get(0);
+                Geofence geofenceTriggered = Objects.requireNonNull(geofencingEvent.getTriggeringGeofences()).get(0);
                 GeofenceEntity geofenceEntity = geofenceDao.getGeofenceByID(geofenceTriggered.getRequestId());
                 if(geofenceEntity != null){
                     String geofenceName = geofenceEntity.name;
                     String geofenceClassification = geofenceEntity.classification;
                     String geofenceNote = geofenceEntity.geofenceNote;
 
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        handleStartForegroundNotification(context, geofenceName, geofenceClassification, geofenceNote);
-                    });
+                    new Handler(Looper.getMainLooper()).post(() -> handleStartForegroundNotification(context, geofenceName, geofenceClassification, geofenceNote));
                 }
                 Log.d(TAG, "THREAD, geofenceEntity: " + geofenceEntity);
             }).start();

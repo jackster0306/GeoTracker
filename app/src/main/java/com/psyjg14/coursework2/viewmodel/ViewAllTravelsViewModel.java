@@ -3,8 +3,6 @@ package com.psyjg14.coursework2.viewmodel;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.model.TravelDataItem;
 
 import java.util.ArrayList;

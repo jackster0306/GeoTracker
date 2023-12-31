@@ -7,7 +7,6 @@ import android.widget.RadioGroup;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 import androidx.room.Room;
 
 import com.google.android.gms.maps.model.LatLng;

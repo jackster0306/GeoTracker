@@ -29,10 +29,9 @@ import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivitySpecificTravelBinding;
-import com.psyjg14.coursework2.model.TravelDataItem;
+
 import com.psyjg14.coursework2.viewmodel.SpecificTravelViewModel;
 
-import java.util.List;
 import java.util.Objects;
 
 public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallback {
@@ -51,11 +50,12 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         binding.setLifecycleOwner(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.specificMapFragment);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
         Log.d("COMP3018", "************************8Name Before Thread: " + getIntent().getStringExtra("name"));
         if(getIntent().getStringExtra("name") != null){
-            specificTravelViewModel.setName(MyTypeConverters.nameFromDatabaseName(getIntent().getStringExtra("name")));
+            specificTravelViewModel.setName(MyTypeConverters.nameFromDatabaseName(Objects.requireNonNull(getIntent().getStringExtra("name"))));
         }
 
 

@@ -2,7 +2,6 @@ package com.psyjg14.coursework2.viewmodel;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.RadioGroup;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

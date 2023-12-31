@@ -1,6 +1,5 @@
 package com.psyjg14.coursework2.viewmodel;
 
-import android.location.Location;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
@@ -16,18 +15,12 @@ import java.util.List;
 
 
 public class MainActivityViewModel extends ViewModel {
-        private Location lastLocation;
         private MutableLiveData<Boolean> addingGeofence = new MutableLiveData<>();
         private boolean requestingLocationUpdates = false;
         private Marker geofenceMarker;
 
         private boolean geofenceFirstPressed = true;
 
-        private boolean isBound = false;
-
-        private float totalDistance = 0.0f;
-        private long startTime = 0;
-        private long endTime = 0;
 
         private final List<LatLng> path = new ArrayList<>();
 
@@ -87,63 +80,8 @@ public class MainActivityViewModel extends ViewModel {
             //geofenceMarker = null;
         }
 
-        public boolean getRequestingLocationUpdates() {
-                return requestingLocationUpdates;
-        }
 
         public void setRequestingLocationUpdates(boolean requestingLocationUpdates) {
                 this.requestingLocationUpdates = requestingLocationUpdates;
-        }
-
-
-    /**
-     * Getter for the flag indicating whether the service is bound.
-     *
-     * @return boolean representing whether the service is bound.
-     */
-    public boolean getIsBound() {
-        return isBound;
-    }
-
-    /**
-     * Setter for the flag indicating whether the service is bound.
-     *
-     * @param isBound The new value for the isBound flag.
-     */
-    public void setIsBound(boolean isBound) {
-        this.isBound = isBound;
-    }
-
-
-    public void setLastLocation(Location lastLocation) {
-                this.lastLocation = lastLocation;
-        }
-
-        public Location getLastLocation() {
-                return lastLocation;
-        }
-
-        public void setTotalDistance(float totalDistance) {
-                this.totalDistance = totalDistance;
-        }
-
-        public float getTotalDistance() {
-                return totalDistance;
-        }
-
-        public void setStartTime(long startTime) {
-                this.startTime = startTime;
-        }
-
-        public long getStartTime() {
-                return startTime;
-        }
-
-        public void setEndTime(long endTime) {
-                this.endTime = endTime;
-        }
-
-        public long getEndTime() {
-                return endTime;
         }
 }

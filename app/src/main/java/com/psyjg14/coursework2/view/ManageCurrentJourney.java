@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
@@ -22,26 +21,20 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
-import com.psyjg14.coursework2.databinding.ActivityMainBinding;
 import com.psyjg14.coursework2.databinding.ActivityManageCurrentJourneyBinding;
 import com.psyjg14.coursework2.model.LocationService;
-import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 import com.psyjg14.coursework2.viewmodel.ManageCurrentJourneyViewModel;
 
 import java.util.List;
 
 public class ManageCurrentJourney extends AppCompatActivity {
     private ManageCurrentJourneyViewModel manageCurrentJourneyViewModel;
-
-    private BottomNavigationView navBar;
 
     LocationService locationService;
 
@@ -55,6 +48,8 @@ public class ManageCurrentJourney extends AppCompatActivity {
         manageCurrentJourneyViewModel = new ViewModelProvider(this).get(ManageCurrentJourneyViewModel.class);
         binding.setViewModel(manageCurrentJourneyViewModel);
         binding.setLifecycleOwner(this);
+
+        BottomNavigationView navBar;
         navBar = binding.manageNavBar;
 
         navBar.setSelectedItemId(R.id.manageMenu);
@@ -76,10 +71,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
                 startActivity(intent);
                 overridePendingTransition(0, 0);
                 return true;
-            } else if (itemId == R.id.manageMenu){
-                return true;
-            }
-            return false;
+            } else return itemId == R.id.manageMenu;
         });
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -95,9 +87,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-            } else {
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permission denied, please allow the permission", Toast.LENGTH_SHORT).show();
             }
         }
@@ -119,25 +109,22 @@ public class ManageCurrentJourney extends AppCompatActivity {
         if(binding.nameEditText.getText().toString().equals("")){
             Toast.makeText(ManageCurrentJourney.this, "Please enter a name for your journey", Toast.LENGTH_SHORT).show();
         } else {
-            manageCurrentJourneyViewModel.getMovementEntities(this).observe(this, new Observer<List<MovementEntity>>() {
-                @Override
-                public void onChanged(List<MovementEntity> movements) {
-                    Boolean nameExists = false;
-                    for(MovementEntity movement : movements){
-                        if(movement.movementName.equals(binding.nameEditText.getText().toString())){
-                            Log.d("COMP3018", "NAME EXISTS: " + movement.movementName + ", " + binding.nameEditText.getText().toString());
-                            nameExists = true;
-                        }
+            manageCurrentJourneyViewModel.getMovementEntities(this).observe(this, movements -> {
+                boolean nameExists = false;
+                for(MovementEntity movement : movements){
+                    if(movement.movementName.equals(binding.nameEditText.getText().toString())){
+                        Log.d("COMP3018", "NAME EXISTS: " + movement.movementName + ", " + binding.nameEditText.getText().toString());
+                        nameExists = true;
                     }
+                }
 
-                    if(nameExists){
-                        Toast.makeText(ManageCurrentJourney.this, "Name already exists, please choose another name", Toast.LENGTH_SHORT).show();
-                        binding.nameEditText.setText("");
-                    } else{
-                        manageCurrentJourneyViewModel.setName(binding.nameEditText.getText().toString());
-                        manageCurrentJourneyViewModel.setIsTracking(false);
-                        locationService.stopLocationUpdates();
-                    }
+                if(nameExists){
+                    Toast.makeText(ManageCurrentJourney.this, "Name already exists, please choose another name", Toast.LENGTH_SHORT).show();
+                    binding.nameEditText.setText("");
+                } else{
+                    manageCurrentJourneyViewModel.setName(binding.nameEditText.getText().toString());
+                    manageCurrentJourneyViewModel.setIsTracking(false);
+                    locationService.stopLocationUpdates();
                 }
             });
 
@@ -146,7 +133,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
 
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection connection = new ServiceConnection() {
 
         // Called when a client binds to the service
         @Override
@@ -162,11 +149,10 @@ public class ManageCurrentJourney extends AppCompatActivity {
             locationService.setCallback(new LocationService.MyLocationCallback() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    return;
                 }
 
                 @Override
-                public void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String name, String type, List<LatLng> path) {
+                public void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String type, List<LatLng> path) {
                     Log.d("COMP3018", "NAME: "+ manageCurrentJourneyViewModel.getName());
                     MovementEntity movementEntity = new MovementEntity();
                     movementEntity.movementName = MyTypeConverters.nameToDatabaseName(manageCurrentJourneyViewModel.getName());

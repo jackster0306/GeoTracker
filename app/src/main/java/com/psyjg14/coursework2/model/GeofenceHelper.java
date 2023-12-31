@@ -19,7 +19,6 @@ import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
@@ -28,9 +27,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class GeofenceHelper {
-    private Context context;
-    private GeofencingClient geofencingClient;
-    private Activity activity;
+    private final Context context;
+    private final GeofencingClient geofencingClient;
+    private final Activity activity;
     public GeofenceHelper(Context context, Activity activity) {
         this.context = context;
         this.activity = activity;
@@ -65,44 +64,35 @@ public class GeofenceHelper {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if(ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 geofencingClient.addGeofences(geofencingRequest, pendingIntent)
-                        .addOnSuccessListener(activity, new OnSuccessListener<Void>() {
-                            @SuppressLint("StaticFieldLeak")
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d("COMP3018", "onSuccess: Geofence Added...");
-                                Log.d("COMP3018", "onSuccess: Adding circle");
-                                GeofenceEntity geofenceEntity = new GeofenceEntity();
-                                geofenceEntity.geofenceID = geofenceID;
-                                geofenceEntity.latitude = latLng.latitude;
-                                geofenceEntity.longitude = latLng.longitude;
-                                geofenceEntity.radius = radius;
-                                geofenceEntity.reminderMessage = "Reminder Message";
-                                geofenceEntity.transitionType = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
-                                geofenceEntity.name = name;
-                                geofenceEntity.classification = classification;
-                                geofenceEntity.geofenceNote = geofenceNote;
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... voids) {
-                                        AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                                                AppDatabase.class, "MDPDatabase").build();
+                        .addOnSuccessListener(activity, aVoid -> {
+                            Log.d("COMP3018", "onSuccess: Geofence Added...");
+                            Log.d("COMP3018", "onSuccess: Adding circle");
+                            GeofenceEntity geofenceEntity = new GeofenceEntity();
+                            geofenceEntity.geofenceID = geofenceID;
+                            geofenceEntity.latitude = latLng.latitude;
+                            geofenceEntity.longitude = latLng.longitude;
+                            geofenceEntity.radius = radius;
+                            geofenceEntity.reminderMessage = "Reminder Message";
+                            geofenceEntity.transitionType = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
+                            geofenceEntity.name = name;
+                            geofenceEntity.classification = classification;
+                            geofenceEntity.geofenceNote = geofenceNote;
+                            new AsyncTask<Void, Void, Void>() {
+                                @Override
+                                protected Void doInBackground(Void... voids) {
+                                    AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
+                                            AppDatabase.class, "MDPDatabase").build();
 
-                                        GeofenceDao geofenceDao = db.geofenceDao();
-                                        geofenceDao.insertGeofence(geofenceEntity);
-                                        if (callback != null) {
-                                            callback.onGeofenceAdded();
-                                        }
-                                        return null;
+                                    GeofenceDao geofenceDao = db.geofenceDao();
+                                    geofenceDao.insertGeofence(geofenceEntity);
+                                    if (callback != null) {
+                                        callback.onGeofenceAdded();
                                     }
-                                }.execute();
-                            }
+                                    return null;
+                                }
+                            }.execute();
                         })
-                        .addOnFailureListener(activity, new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.d("COMP3018", "onFailure: " + e.getMessage());
-                            }
-                        });
+                        .addOnFailureListener(activity, e -> Log.d("COMP3018", "onFailure: " + e.getMessage()));
             } else{
                 ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
             }

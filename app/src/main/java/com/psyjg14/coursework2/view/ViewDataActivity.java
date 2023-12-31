@@ -1,14 +1,13 @@
 package com.psyjg14.coursework2.view;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.room.Room;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 
@@ -23,21 +22,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.GeofenceDao;
-import com.psyjg14.coursework2.database.dao.MovementDao;
-import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityViewDataBinding;
 import com.psyjg14.coursework2.viewmodel.ViewDataViewModel;
 
-import java.util.List;
 
 public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCallback {
     private ViewDataViewModel viewDataViewModel;
 
     private GoogleMap map;
-
-    private BottomNavigationView navBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +43,11 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         binding.setLifecycleOwner(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.dataMap);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
         viewDataViewModel.updateDistanceAndTime();
+
+        BottomNavigationView navBar;
 
         navBar = binding.dataNavBar;
 
@@ -92,7 +87,7 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
         viewDataViewModel.getPath().observe(this, path -> {
             if(path.size()>1){
