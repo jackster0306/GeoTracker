@@ -148,10 +148,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }.execute();
 
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
         geofenceHelper = new GeofenceHelper(this, this);
 
 
@@ -178,12 +174,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
+        } else {
+            mainActivityViewModel.setRequestingLocationUpdates(true);
         }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, FINE_PERMISSION_CODE);
-        }
+
+
+
     }
 
 
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        Log.d("MAP", "Map is ready");
+        Log.d("COMP3018", "Map is ready");
         map = googleMap;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -247,14 +249,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 }
             });
-//            new Thread(() -> {
-//                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-//                        AppDatabase.class, "MDPDatabase").build();
-//
-//                GeofenceDao geofenceDao = db.geofenceDao();
-//                GeofenceEntity geofence = geofenceDao.getGeofenceByName(geofenceName);
-//                showGeofenceDetails(geofence);
-//            }).start();
         });
     }
 
@@ -343,6 +337,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //locationService.getLastLocation();
                 mainActivityViewModel.setRequestingLocationUpdates(true);
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    map.setMyLocationEnabled(true);
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
+                }
             } else {
                 Toast.makeText(this, "Permission denied, please allow the permission", Toast.LENGTH_SHORT).show();
             }

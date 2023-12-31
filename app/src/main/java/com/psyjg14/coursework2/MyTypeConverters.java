@@ -22,4 +22,12 @@ public class MyTypeConverters {
         String json = gson.toJson(list);
         return json;
     }
+
+    public static String nameToDatabaseName(String name) {
+        return name.replace(" ", "_");
+    }
+
+    public static String nameFromDatabaseName(String name) {
+        return name.replace("_", " ");
+    }
 }

@@ -6,9 +6,12 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,6 +22,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.MovementDao;
@@ -28,6 +32,7 @@ import com.psyjg14.coursework2.model.TravelDataItem;
 import com.psyjg14.coursework2.viewmodel.SpecificTravelViewModel;
 
 import java.util.List;
+import java.util.Objects;
 
 public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallback {
     private SpecificTravelViewModel specificTravelViewModel;
@@ -49,7 +54,7 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
 
         Log.d("COMP3018", "************************8Name Before Thread: " + getIntent().getStringExtra("name"));
         if(getIntent().getStringExtra("name") != null){
-            specificTravelViewModel.setName(getIntent().getStringExtra("name"));
+            specificTravelViewModel.setName(MyTypeConverters.nameFromDatabaseName(getIntent().getStringExtra("name")));
         }
 
 
@@ -58,7 +63,7 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             MovementDao movementDao = Room.databaseBuilder(getApplicationContext(),
                     AppDatabase.class, "MDPDatabase").build().movementDao();
             Log.d("COMP3018", "************************8Name: " + specificTravelViewModel.getName().getValue());
-            MovementEntity movementEntity = movementDao.getMovementById(specificTravelViewModel.getName().getValue());
+            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
             Log.d("COMP3018", "************************8Distance: " + movementEntity.distanceTravelled + ", Time: " + movementEntity.timeTaken + ", Type: " + movementEntity.movementType + ", TimeStamp: " + movementEntity.timeStamp + ", Path: " + movementEntity.path);
             specificTravelViewModel.setDistance(movementEntity.distanceTravelled);
             specificTravelViewModel.setTimeTaken(movementEntity.timeTaken);
@@ -88,5 +93,11 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             LatLngBounds pathBounds = builder.build();
             map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
         });
+    }
+
+    public void onBackArrowPressed(View v){
+        Intent intent = new Intent();
+        setResult(Activity.RESULT_OK, intent);
+        finish();
     }
 }

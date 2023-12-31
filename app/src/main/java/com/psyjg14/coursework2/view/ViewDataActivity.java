@@ -86,24 +86,27 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         viewDataViewModel.getPath().observe(this, path -> {
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .addAll(path)
-                    .color(Color.CYAN)
-                    .width(10);
-            map.addPolyline(polylineOptions);
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            for(LatLng latLng : path){
-                builder.include(latLng);
+            if(path.size()>1){
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .addAll(path)
+                        .color(Color.CYAN)
+                        .width(10);
+                map.addPolyline(polylineOptions);
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                for(LatLng latLng : path){
+                    builder.include(latLng);
+                }
+                if(path.size() == 0){
+                    return;
+                }
+                LatLng startLatLng = path.get(0);
+                LatLng endLatLng = path.get(path.size() - 1);
+                map.addMarker(new MarkerOptions().position(startLatLng).title("Start").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                map.addMarker(new MarkerOptions().position(endLatLng).title("End"));
+                LatLngBounds pathBounds = builder.build();
+                map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
             }
-            if(path.size() == 0){
-                return;
-            }
-            LatLng startLatLng = path.get(0);
-            LatLng endLatLng = path.get(path.size() - 1);
-            map.addMarker(new MarkerOptions().position(startLatLng).title("Start").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            map.addMarker(new MarkerOptions().position(endLatLng).title("End"));
-            LatLngBounds pathBounds = builder.build();
-            map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
+
         });
     }
 

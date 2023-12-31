@@ -196,8 +196,8 @@ public class LocationService extends Service {
 
     public void startTracking(String type){
         notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Player Service")
-                .setContentText("Playing selected music")
+                .setContentTitle("Tracking Journey")
+                .setContentText("Tracking your current " + type)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .build();
         startForeground(NOTIFICATION_ID, notification);
@@ -212,6 +212,7 @@ public class LocationService extends Service {
         Log.d(TAG, "updateData: LocationService");
         if(path.size() == 1){
             startTime = newLocation.getTime();
+            Log.d(TAG, "Start Time: ");
             path.add(new LatLng(newLocation.getLatitude(), newLocation.getLongitude()));
         } else if(path.size() > 1){
             path.add(new LatLng(newLocation.getLatitude(), newLocation.getLongitude()));

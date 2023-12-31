@@ -1,13 +1,20 @@
 package com.psyjg14.coursework2.viewmodel;
 
+import android.content.Context;
 import android.util.Log;
 import android.widget.RadioGroup;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.room.Room;
 
 import com.psyjg14.coursework2.R;
+import com.psyjg14.coursework2.database.AppDatabase;
+import com.psyjg14.coursework2.database.dao.MovementDao;
+import com.psyjg14.coursework2.database.entities.MovementEntity;
+
+import java.util.List;
 
 public class ManageCurrentJourneyViewModel extends ViewModel {
     private int buttonSelected = R.id.walkButton;
@@ -15,6 +22,8 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
     private MutableLiveData<Boolean> isTracking = new MutableLiveData<>();
 
     private MutableLiveData<String> name = new MutableLiveData<>();
+
+    private MutableLiveData<List<MovementEntity>> movements = new MutableLiveData<>();
 
     public ManageCurrentJourneyViewModel() {
         isTracking.setValue(false);
@@ -34,7 +43,8 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
 
 
     public void onRadioButtonPressed(int buttonID){
-        buttonSelected = buttonID;
+        Log.d("COMP3018", "Button Pressed: " + buttonID + ", Walk Button: " + R.id.walkButton + ", Run Button: " + R.id.runButton + ", Cycle Button: " + R.id.cycleButton);
+        buttonSelected = buttonID-1;
     }
 
     public LiveData<Boolean> getIsTracking() {
@@ -61,7 +71,18 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
         } else if(buttonSelected == R.id.cycleButton){
             return "Cycle";
         }
-        return "Walk";
+        return "test";
+    }
+
+    public LiveData<List<MovementEntity>> getMovementEntities(Context context){
+        new Thread(()-> {
+            AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
+                    AppDatabase.class, "MDPDatabase").build();
+            MovementDao movementDao = db.movementDao();
+            List<MovementEntity> newMovements = movementDao.getAllMovements();
+            movements.postValue(newMovements);
+        }).start();
+        return movements;
     }
 
 

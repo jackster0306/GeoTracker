@@ -1,5 +1,7 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -8,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -23,6 +26,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.TravelDataItemAdapter;
 import com.psyjg14.coursework2.database.AppDatabase;
@@ -37,10 +41,21 @@ import java.util.List;
 public class ViewAllTravelsActivity extends AppCompatActivity {
     private ViewAllTravelsViewModel viewAllTravelsViewModel;
 
+    ActivityResultLauncher<Intent> activityResultLauncher;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+
+                    }
+                }
+        );
 
 
 
@@ -54,7 +69,7 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
                     AppDatabase.class, "MDPDatabase").build().movementDao();
             List<MovementEntity> movementEntities = movementDao.getAllMovements();
             for(MovementEntity entity : movementEntities){
-                viewAllTravelsViewModel.addToMovementList(new TravelDataItem(entity.movementName, entity.movementType, entity.timeStamp));
+                viewAllTravelsViewModel.addToMovementList(new TravelDataItem(MyTypeConverters.nameFromDatabaseName(entity.movementName), entity.movementType, entity.timeStamp));
             }
         }).start();
 
@@ -72,6 +87,10 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         Log.d("COMP3018", "Name: " + name);
         Intent intent = new Intent(this, SpecificTravel.class);
         intent.putExtra("name", name);
-        startActivity(intent);
+        activityResultLauncher.launch(intent);
+    }
+
+    public void onBackArrowPressed(View v){
+        finish();
     }
 }

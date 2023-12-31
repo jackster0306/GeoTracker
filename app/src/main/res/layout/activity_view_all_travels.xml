@@ -14,6 +14,18 @@
         android:layout_height="match_parent"
         tools:context=".view.ViewAllTravelsActivity">
 
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.002"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="#00FFFFFF"
+            android:onClick="onBackArrowPressed"
+            android:src="@drawable/baseline_arrow_back_24" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="409dp"
@@ -21,7 +33,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@id/backButton" />
 
         <FrameLayout
             android:id="@+id/mapFrameLayout"
