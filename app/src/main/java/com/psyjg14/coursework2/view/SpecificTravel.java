@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -71,6 +72,14 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
             specificTravelViewModel.setPath(movementEntity.path);
         }).start();
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
@@ -100,4 +109,9 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         setResult(Activity.RESULT_OK, intent);
         finish();
     }
+
+    public void onBack(){
+        finish();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -79,7 +80,13 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         TravelDataItemAdapter adapter = new TravelDataItemAdapter(viewAllTravelsViewModel.getMovementList(), this);
         recyclerView.setAdapter(adapter);
 
-
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     public void onShowMapPressed(View view) {
@@ -93,4 +100,9 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
     public void onBackArrowPressed(View v){
         finish();
     }
+
+    public void onBack(){
+        finish();
+    }
+
 }

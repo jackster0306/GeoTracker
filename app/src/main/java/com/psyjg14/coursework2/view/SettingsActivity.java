@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -26,5 +27,18 @@ public class SettingsActivity extends AppCompatActivity {
         settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
         binding.setViewModel(settingsViewModel);
         binding.setLifecycleOwner(this);
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
+
+    public void onBack(){
+        finish();
+    }
+
 }

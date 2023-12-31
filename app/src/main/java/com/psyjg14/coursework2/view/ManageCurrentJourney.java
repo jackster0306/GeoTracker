@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -80,6 +81,14 @@ public class ManageCurrentJourney extends AppCompatActivity {
             }
             return false;
         });
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
@@ -208,4 +217,9 @@ public class ManageCurrentJourney extends AppCompatActivity {
             manageCurrentJourneyViewModel.setIsBound(false);
         }
     }
+
+    public void onBack(){
+        finish();
+    }
+
 }

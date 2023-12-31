@@ -1,6 +1,7 @@
 package com.psyjg14.coursework2.view;
 
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -184,7 +185,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mainActivityViewModel.setRequestingLocationUpdates(true);
         }
 
-
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
 
     }
 
@@ -419,6 +426,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
+    }
+
+    public void onBack(){
+        finish();
     }
 
 }

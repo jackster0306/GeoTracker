@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.view;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -80,6 +81,14 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
             }
             return false;
         });
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
@@ -114,4 +123,9 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         Intent intent = new Intent(this, ViewAllTravelsActivity.class);
         startActivity(intent);
     }
+
+    public void onBack(){
+        finish();
+    }
+
 }
