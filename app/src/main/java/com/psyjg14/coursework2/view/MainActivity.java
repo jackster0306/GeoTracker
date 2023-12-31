@@ -48,6 +48,7 @@ import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivityMainBinding;
 import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -382,6 +383,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onBack(){
         finish();
+    }
+
+
+    /**
+     * Called when the activity is destroyed.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Save the state of addingGeofence
+        outState.putBoolean("addingGeofence", mainActivityViewModel.getAddingGeofenceAsBool());
+        // Save the state of geofenceFirstPressed
+        outState.putBoolean("geofenceFirstPressed", mainActivityViewModel.getGeofenceFirstPressed());
+        // You can save other relevant data here if needed
+
+        if(mainActivityViewModel.getAddingGeofenceAsBool()){
+            //put marker position
+        }
+    }
+
+    /**
+     * Called when the activity is restored.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null) {
+            boolean addingGeofence = savedInstanceState.getBoolean("addingGeofence");
+            mainActivityViewModel.setAddingGeofence(addingGeofence);
+
+            // Restore the state of geofenceFirstPressed
+            boolean geofenceFirstPressed = savedInstanceState.getBoolean("geofenceFirstPressed");
+            mainActivityViewModel.setGeofenceFirstPressed(geofenceFirstPressed);
+        }
     }
 
 }

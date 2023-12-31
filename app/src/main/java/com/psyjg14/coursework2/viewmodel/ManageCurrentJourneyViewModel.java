@@ -73,6 +73,16 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
         return "test";
     }
 
+    public void setType(String type){
+        if(type.equals("Walk")){
+            buttonSelected = R.id.walkButton;
+        } else if(type.equals("Run")){
+            buttonSelected = R.id.runButton;
+        } else if(type.equals("Cycle")){
+            buttonSelected = R.id.cycleButton;
+        }
+    }
+
     public LiveData<List<MovementEntity>> getMovementEntities(Context context){
         new Thread(()-> {
             AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),

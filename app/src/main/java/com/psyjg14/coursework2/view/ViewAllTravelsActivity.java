@@ -90,4 +90,21 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Called when the activity is destroyed.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // Save the current background color, playback speed
+        super.onSaveInstanceState(outState);
+    }
+
+    /**
+     * Called when the activity is restored.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
 }

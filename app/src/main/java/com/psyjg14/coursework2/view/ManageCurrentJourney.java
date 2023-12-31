@@ -32,6 +32,7 @@ import com.psyjg14.coursework2.model.LocationService;
 import com.psyjg14.coursework2.viewmodel.ManageCurrentJourneyViewModel;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ManageCurrentJourney extends AppCompatActivity {
     private ManageCurrentJourneyViewModel manageCurrentJourneyViewModel;
@@ -206,6 +207,36 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
     public void onBack(){
         finish();
+    }
+
+    /**
+     * Called when the activity is destroyed.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(manageCurrentJourneyViewModel.getIsTracking().getValue()){
+            outState.putBoolean("isTracking", true);
+            outState.putString("name", manageCurrentJourneyViewModel.getName());
+            outState.putString("type", manageCurrentJourneyViewModel.getType());
+        } else{
+            outState.putBoolean("isTracking", false);
+        }
+    }
+
+    /**
+     * Called when the activity is restored.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState.getBoolean("isTracking")){
+            manageCurrentJourneyViewModel.setIsTracking(true);
+            manageCurrentJourneyViewModel.setName(savedInstanceState.getString("name"));
+            manageCurrentJourneyViewModel.setType(Objects.requireNonNull(savedInstanceState.getString("type")));
+        } else{
+            manageCurrentJourneyViewModel.setIsTracking(false);
+        }
     }
 
 }

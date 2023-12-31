@@ -84,4 +84,8 @@ public class MainActivityViewModel extends ViewModel {
         public void setRequestingLocationUpdates(boolean requestingLocationUpdates) {
                 this.requestingLocationUpdates = requestingLocationUpdates;
         }
+
+    public void setGeofenceFirstPressed(boolean geofenceFirstPressed) {
+        this.geofenceFirstPressed = geofenceFirstPressed;
+    }
 }
