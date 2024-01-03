@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
@@ -66,8 +67,8 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         specificTravelViewModel.setDistanceUnit(distanceUnit);
 
         new Thread(() -> {
-            MovementDao movementDao = Room.databaseBuilder(getApplicationContext(),
-                    AppDatabase.class, "MDPDatabase").build().movementDao();
+            AppDatabase db = DatabaseSingleton.getDatabaseInstance(SpecificTravel.this);
+            MovementDao movementDao = db.movementDao();
             Log.d("COMP3018", "************************8Name: " + specificTravelViewModel.getName().getValue());
             MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
             Log.d("COMP3018", "************************8Distance: " + movementEntity.distanceTravelled + ", Time: " + movementEntity.timeTaken + ", Type: " + movementEntity.movementType + ", TimeStamp: " + movementEntity.timeStamp + ", Path: " + movementEntity.path);

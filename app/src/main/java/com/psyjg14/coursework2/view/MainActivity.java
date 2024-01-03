@@ -41,6 +41,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.psyjg14.coursework2.DatabaseSingleton;
+import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GeofenceHelper geofenceHelper;
 
     private static final int GEOFENCE_RADIUS = 100;
+    private NavBarManager navBarManager;
 
 
 
@@ -88,34 +91,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         navBar.setSelectedItemId(R.id.mapMenu);
 
+
         navBar.setOnItemSelectedListener(item -> {
+            NavBarManager instance = NavBarManager.getInstance();
             int itemId = item.getItemId();
-            if (itemId == R.id.mapMenu) {
-                return true;
-            } else if (itemId == R.id.statsMenu) {
-                Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (itemId == R.id.settingsMenu) {
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (itemId == R.id.manageMenu) {
-                Intent intent = new Intent(MainActivity.this, ManageCurrentJourney.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            }
-            return false;
+            return instance.navBarItemPressed(MainActivity.this, itemId, R.id.mapMenu);
         });
 
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
+                AppDatabase db = DatabaseSingleton.getDatabaseInstance(MainActivity.this);
 
                 GeofenceDao userDao = db.geofenceDao();
                 mainActivityViewModel.setGeofences(userDao.getAllGeofences());
@@ -179,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("COMP3018", "Location Accuracy: " + locationAccuracy);
         Log.d("COMP3018", "Unit System: " + unitSystem);
         Log.d("COMP3018", "Update Periods: " + updatePeriods);
+
 
     }
 
@@ -399,6 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void onBack(){
+        NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
     }
 

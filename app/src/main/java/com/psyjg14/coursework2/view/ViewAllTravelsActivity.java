@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.TravelDataItemAdapter;
@@ -51,8 +52,8 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         binding.setLifecycleOwner(this);
 
         new Thread(() -> {
-            MovementDao movementDao = Room.databaseBuilder(getApplicationContext(),
-                    AppDatabase.class, "MDPDatabase").build().movementDao();
+            AppDatabase db = DatabaseSingleton.getDatabaseInstance(ViewAllTravelsActivity.this);
+            MovementDao movementDao = db.movementDao();
             List<MovementEntity> movementEntities = movementDao.getAllMovements();
             for(MovementEntity entity : movementEntities){
                 viewAllTravelsViewModel.addToMovementList(new TravelDataItem(MyTypeConverters.nameFromDatabaseName(entity.movementName), entity.movementType, entity.timeStamp));
@@ -68,6 +69,7 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+
                 onBack();
             }
         };

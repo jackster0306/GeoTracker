@@ -8,10 +8,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.room.Room;
 
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
+import com.psyjg14.coursework2.view.MainActivity;
 
 import java.util.List;
 
@@ -86,8 +88,7 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
     public LiveData<List<MovementEntity>> getMovementEntities(Context context){
 
         new Thread(()-> {
-            AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                    AppDatabase.class, "MDPDatabase").build();
+            AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
             MovementDao movementDao = db.movementDao();
             List<MovementEntity> newMovements = movementDao.getAllMovements();
             movements.postValue(newMovements);

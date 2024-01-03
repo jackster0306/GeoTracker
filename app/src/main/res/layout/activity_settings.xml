@@ -7,6 +7,10 @@
         <variable
             name="viewModel"
             type="com.psyjg14.coursework2.viewmodel.SettingsViewModel" />
+
+        <variable
+            name="navBarManager"
+            type="com.psyjg14.coursework2.NavBarManager" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

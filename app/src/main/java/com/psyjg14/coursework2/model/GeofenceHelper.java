@@ -19,6 +19,7 @@ import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
@@ -80,8 +81,7 @@ public class GeofenceHelper {
                             new AsyncTask<Void, Void, Void>() {
                                 @Override
                                 protected Void doInBackground(Void... voids) {
-                                    AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                                            AppDatabase.class, "MDPDatabase").build();
+                                    AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
 
                                     GeofenceDao geofenceDao = db.geofenceDao();
                                     geofenceDao.insertGeofence(geofenceEntity);
@@ -113,8 +113,7 @@ public class GeofenceHelper {
         new AsyncTask<Void, Void, List<GeofenceEntity>>() {
             @Override
             protected List<GeofenceEntity> doInBackground(Void... voids) {
-                AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
+                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
 
                 GeofenceDao geofenceDao = db.geofenceDao();
                 return geofenceDao.getAllGeofences();
@@ -133,8 +132,7 @@ public class GeofenceHelper {
         new AsyncTask<Void, Void, List<GeofenceEntity>>() {
             @Override
             protected List<GeofenceEntity> doInBackground(Void... voids) {
-                AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
+                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
 
                 GeofenceDao geofenceDao = db.geofenceDao();
                 geofenceDao.deleteGeofence(geofence);

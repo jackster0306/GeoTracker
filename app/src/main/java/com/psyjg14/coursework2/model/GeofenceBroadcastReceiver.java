@@ -17,6 +17,7 @@ import androidx.room.Room;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
@@ -51,8 +52,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             Log.e(TAG, "onReceive: ENTER");
             new Thread(() -> {
                 Log.d(TAG, "onReceive: THREAD");
-                AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
-                        AppDatabase.class, "MDPDatabase").build();
+                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
                 GeofenceDao geofenceDao = db.geofenceDao();
 
                 Geofence geofenceTriggered = Objects.requireNonNull(geofencingEvent.getTriggeringGeofences()).get(0);

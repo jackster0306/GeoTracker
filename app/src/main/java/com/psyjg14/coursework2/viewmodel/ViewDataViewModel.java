@@ -10,10 +10,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.room.Room;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
+import com.psyjg14.coursework2.view.MainActivity;
 
 import java.util.Calendar;
 import java.util.List;
@@ -31,8 +33,7 @@ public class ViewDataViewModel extends AndroidViewModel {
 
     public ViewDataViewModel(Application application) {
         super(application);
-        AppDatabase appDatabase = Room.databaseBuilder(application.getApplicationContext(),
-                AppDatabase.class, "MDPDatabase").build();
+        AppDatabase appDatabase = DatabaseSingleton.getDatabaseInstance(application.getApplicationContext());
         movementDao = appDatabase.movementDao();
     }
 

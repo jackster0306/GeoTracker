@@ -25,7 +25,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.MyTypeConverters;
+import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
@@ -58,23 +60,9 @@ public class ManageCurrentJourney extends AppCompatActivity {
         navBar.setSelectedItemId(R.id.manageMenu);
 
         navBar.setOnItemSelectedListener(item -> {
+            NavBarManager instance = NavBarManager.getInstance();
             int itemId = item.getItemId();
-            if(itemId == R.id.mapMenu){
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if(itemId == R.id.statsMenu){
-                Intent intent = new Intent(this, ViewDataActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if(itemId == R.id.settingsMenu){
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else return itemId == R.id.manageMenu;
+            return instance.navBarItemPressed(ManageCurrentJourney.this, itemId, R.id.manageMenu);
         });
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -171,8 +159,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
                     movementEntity.path = path;
                     locationService.stopSelf();
                     new Thread(() -> {
-                        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                                AppDatabase.class, "MDPDatabase").build();
+                        AppDatabase db = DatabaseSingleton.getDatabaseInstance(ManageCurrentJourney.this);
 
                         db.movementDao().insertMovement(movementEntity);
                     }).start();
@@ -213,6 +200,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
     }
 
     public void onBack(){
+        NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
     }
 

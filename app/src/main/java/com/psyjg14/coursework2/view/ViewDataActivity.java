@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivityViewDataBinding;
 import com.psyjg14.coursework2.viewmodel.ViewDataViewModel;
@@ -54,27 +56,12 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
 
         navBar.setSelectedItemId(R.id.statsMenu);
 
+
+
         navBar.setOnItemSelectedListener(item -> {
+            NavBarManager instance = NavBarManager.getInstance();
             int itemId = item.getItemId();
-            if(itemId == R.id.mapMenu){
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if(itemId == R.id.statsMenu){
-                return true;
-            } else if(itemId == R.id.settingsMenu){
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (itemId == R.id.manageMenu){
-                Intent intent = new Intent(this, ManageCurrentJourney.class);
-                startActivity(intent);
-                overridePendingTransition(0, 0);
-                return true;
-            }
-            return false;
+            return instance.navBarItemPressed(ViewDataActivity.this, itemId, R.id.statsMenu);
         });
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -84,6 +71,9 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
+
+
+
     }
 
     @Override
@@ -103,12 +93,16 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
                 if(path.size() == 0){
                     return;
                 }
+                LatLngBounds pathBounds = builder.build();
+
+                map.setOnMapLoadedCallback(() -> {
+                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
+                });
+
                 LatLng startLatLng = path.get(0);
                 LatLng endLatLng = path.get(path.size() - 1);
                 map.addMarker(new MarkerOptions().position(startLatLng).title("Start").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
                 map.addMarker(new MarkerOptions().position(endLatLng).title("End"));
-                LatLngBounds pathBounds = builder.build();
-                map.moveCamera(CameraUpdateFactory.newLatLngBounds(pathBounds, 100));
             }
 
         });
@@ -120,6 +114,7 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     public void onBack(){
+        NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
     }
 
