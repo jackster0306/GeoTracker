@@ -62,6 +62,8 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
+    implementation("androidx.preference:preference:1.1.1")
+
     constraints {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0"){
             because("kotlin-stdlib7-jdk7 is now a part of kotlin-stdlib")

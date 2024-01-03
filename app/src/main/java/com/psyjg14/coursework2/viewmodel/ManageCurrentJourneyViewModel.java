@@ -84,6 +84,7 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
     }
 
     public LiveData<List<MovementEntity>> getMovementEntities(Context context){
+
         new Thread(()-> {
             AppDatabase db = Room.databaseBuilder(context.getApplicationContext(),
                     AppDatabase.class, "MDPDatabase").build();

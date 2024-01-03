@@ -58,6 +58,10 @@ public class LocationService extends Service {
 
     private Notification notification;
 
+    private int locationPriority = Priority.PRIORITY_HIGH_ACCURACY;
+
+    private int updateDistance = 50;
+
     public interface MyLocationCallback {
         void onLocationChanged(Location location);
 
@@ -112,7 +116,8 @@ public class LocationService extends Service {
         Log.d(TAG, "*************************onStartCommand: LocationService*************************");
 
 //        new Thread(()-> {
-            startLocationUpdates(createLocationRequest());
+        startLocationUpdates(createLocationRequest());
+
 //        }).start();
 
 
@@ -160,8 +165,8 @@ public class LocationService extends Service {
     public LocationRequest createLocationRequest() {
         Log.d(TAG, "createLocationRequest: LocationService");
         return new LocationRequest.Builder(0)
-                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .setMinUpdateDistanceMeters(50)
+                .setPriority(locationPriority)
+                .setMinUpdateDistanceMeters(updateDistance)
                 .build();
     }
 
@@ -200,5 +205,24 @@ public class LocationService extends Service {
     public boolean getIsUpdating(){
         Log.d(TAG, "getIsUpdating: LocationService");
         return isUpdating;
+    }
+
+    public void setupLocation(String locationPriorityString, String updateDistanceString){
+        if (locationPriorityString.equals("high")){
+            locationPriority = Priority.PRIORITY_HIGH_ACCURACY;
+        } else if(locationPriorityString.equals("balanced")){
+            locationPriority = Priority.PRIORITY_BALANCED_POWER_ACCURACY;
+        } else{
+            locationPriority = Priority.PRIORITY_LOW_POWER;
+        }
+
+        if(updateDistanceString.equals("low")){
+            updateDistance = 10;
+        } else if(updateDistanceString.equals("medium")){
+            updateDistance = 25;
+        } else{
+            updateDistance = 50;
+        }
+
     }
 }

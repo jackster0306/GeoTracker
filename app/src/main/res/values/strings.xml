@@ -13,4 +13,70 @@
         <item>Good</item>
         <item>Bad</item>
     </string-array>
+
+
+
+    <string name="pref_location_accuracy_key">location_accuracy_preference</string>
+    <string name="pref_location_accuracy_title">Location Accuracy</string>
+    <string name="pref_location_accuracy_summary">Select the desired location accuracy.</string>
+    <string name="pref_location_accuracy_dialog_title">Select Location Accuracy</string>
+    <string name="pref_location_accuracy_default">2</string>
+
+    <string name="pref_unit_system_key">distance_unit_preference</string>
+    <string name="pref_unit_system_title">Unit Preference</string>
+    <string name="pref_unit_system_summary">Select the preferred unit for distance.</string>
+    <string name="pref_unit_system_dialog_title">Select Unit</string>
+    <string name="pref_unit_system_default">1</string>
+
+    <string name="pref_update_periods_key">update_periods_preference</string>
+    <string name="pref_update_periods_title">Update Periods</string>
+    <string name="pref_update_periods_summary">Choose how often updates should occur based on distance moved.</string>
+    <string name="pref_update_periods_dialog_title">Select Update Periods</string>
+    <string name="pref_update_periods_default">1</string>
+
+    <string name="pref_help_category_title">Help</string>
+    <string name="pref_help_faq_key">faq_preference</string>
+    <string name="pref_help_faq_title">FAQ</string>
+    <string name="pref_help_faq_summary">Frequently Asked Questions</string>
+
+    <string name="pref_help_contact_key">contact_preference</string>
+    <string name="pref_help_contact_title">Contact Us</string>
+    <string name="pref_help_contact_summary">Reach out for assistance</string>
+
+    <string-array name="location_accuracy_options">
+        <item>High Accuracy</item>
+        <item>Balanced</item>
+        <item>Power Saving</item>
+    </string-array>
+
+    <string-array name="location_accuracy_values">
+        <item>high</item>
+        <item>balanced</item>
+        <item>low</item>
+    </string-array>
+
+    <string-array name="unit_system_options">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </string-array>
+
+    <string-array name="unit_system_values">
+        <item>metric</item>
+        <item>imperial</item>
+    </string-array>
+
+    <string-array name="update_periods_options">
+        <item>Low (10 m)</item>
+        <item>Medium (25 m)</item>
+        <item>High (50 m)</item>
+    </string-array>
+
+    <string-array name="update_periods_values">
+        <item>low</item>
+        <item>medium</item>
+        <item>high</item>
+    </string-array>
+
+    <!-- Add other array resources as needed -->
+
 </resources>

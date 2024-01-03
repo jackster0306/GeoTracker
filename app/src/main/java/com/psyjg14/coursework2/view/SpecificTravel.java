@@ -5,10 +5,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -58,7 +60,10 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             specificTravelViewModel.setName(MyTypeConverters.nameFromDatabaseName(Objects.requireNonNull(getIntent().getStringExtra("name"))));
         }
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        String distanceUnit = preferences.getString(getString(R.string.pref_unit_system_key), "");
+        specificTravelViewModel.setDistanceUnit(distanceUnit);
 
         new Thread(() -> {
             MovementDao movementDao = Room.databaseBuilder(getApplicationContext(),

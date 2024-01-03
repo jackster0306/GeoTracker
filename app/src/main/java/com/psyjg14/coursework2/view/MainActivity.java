@@ -10,6 +10,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -21,6 +22,7 @@ import android.util.Log;
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 
 import android.view.View;
@@ -162,6 +164,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Retrieve the values of preferences using the keys
+        String locationAccuracy = preferences.getString(getString(R.string.pref_location_accuracy_key), "");
+        String unitSystem = preferences.getString(getString(R.string.pref_unit_system_key), "");
+        String updatePeriods = preferences.getString(getString(R.string.pref_update_periods_key), "");
+
+        // Now you have the preference values, you can use them as needed
+        // ...
+
+        // Example: Log the retrieved values
+        Log.d("COMP3018", "Location Accuracy: " + locationAccuracy);
+        Log.d("COMP3018", "Unit System: " + unitSystem);
+        Log.d("COMP3018", "Update Periods: " + updatePeriods);
 
     }
 

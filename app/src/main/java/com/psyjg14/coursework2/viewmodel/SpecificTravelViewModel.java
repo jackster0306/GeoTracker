@@ -1,9 +1,14 @@
 package com.psyjg14.coursework2.viewmodel;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.psyjg14.coursework2.R;
 
 import java.util.List;
 
@@ -15,6 +20,12 @@ public class SpecificTravelViewModel extends ViewModel {
     private MutableLiveData<String> timeTakenText = new MutableLiveData<>();
     private MutableLiveData<String> travelType = new MutableLiveData<>();
     private MutableLiveData<String> completionTimeText = new MutableLiveData<>();
+
+    private String distanceUnit;
+
+    public void setDistanceUnit(String distanceUnit){
+        this.distanceUnit = distanceUnit;
+    }
 
     public void setPath(List<LatLng> newPath){
         path.postValue(newPath);
@@ -32,7 +43,12 @@ public class SpecificTravelViewModel extends ViewModel {
     }
 
     public void setDistance(double distance){
-        distanceText.postValue("Distance Travelled: " + distance/1000 + " kilometres");
+        if(distanceUnit.equals("metric")){
+            distanceText.postValue("Distance Travelled: " + distance/1000 + " kilometres");
+        }
+        else{
+            distanceText.postValue("Distance Travelled: " + distance*0.000621371 + " miles");
+        }
     }
     public MutableLiveData<String> getDistance() {
         return distanceText;

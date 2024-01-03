@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 
 import android.Manifest;
@@ -13,6 +14,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -99,6 +101,11 @@ public class ManageCurrentJourney extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
         } else{
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+            String locationPriority = preferences.getString(getString(R.string.pref_location_accuracy_key), "");
+            String updatePeriods = preferences.getString(getString(R.string.pref_update_periods_key), "");
+            locationService.setupLocation(locationPriority, updatePeriods);
             manageCurrentJourneyViewModel.setIsTracking(true);
             locationService.startTracking(manageCurrentJourneyViewModel.getType());
             startService(new Intent(this, LocationService.class));
