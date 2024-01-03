@@ -2,6 +2,7 @@ package com.psyjg14.coursework2.view;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.ListPreference;
@@ -87,9 +88,22 @@ public class SettingsActivity extends AppCompatActivity {
             // Update the summary of the preference based on the current value
             if (preference instanceof ListPreference) {
                 ListPreference listPreference = (ListPreference) preference;
-                preference.setSummary(listPreference.getEntry());
+                if(listPreference.getKey().equals(getString(R.string.pref_location_accuracy_key))){
+                    String originalSummary = getString(R.string.pref_location_accuracy_summary);
+                    String summary =  String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());
+                    preference.setSummary(HtmlCompat.fromHtml(summary, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
+                else if(listPreference.getKey().equals(getString(R.string.pref_unit_system_key))){
+                    String originalSummary = getString(R.string.pref_unit_system_summary);
+                    String summary =  String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());
+                    preference.setSummary(HtmlCompat.fromHtml(summary, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
+                else if(listPreference.getKey().equals(getString(R.string.pref_update_periods_key))) {
+                    String originalSummary = getString(R.string.pref_update_periods_summary);
+                    String summary = String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());
+                    preference.setSummary(HtmlCompat.fromHtml(summary, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
             }
-            // Add additional handling for other types of preferences if needed
         }
     }
 
