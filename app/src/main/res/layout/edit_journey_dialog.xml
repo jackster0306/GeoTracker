@@ -17,7 +17,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Edit Journey"
+            android:text="@string/edit_journey_string"
             android:textSize="18sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -27,7 +27,7 @@
             android:id="@+id/editTextName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Name"
+            android:hint="@string/enter_name_string"
             android:inputType="text"
             android:layout_marginBottom="8dp" />
 
@@ -46,19 +46,19 @@
                 android:id="@+id/walkRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Walk" />
+                android:text="@string/walk_string" />
 
             <RadioButton
                 android:id="@+id/runRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Run" />
+                android:text="@string/run_string" />
 
             <RadioButton
                 android:id="@+id/cycleRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cycle" />
+                android:text="@string/cycle_string" />
         </RadioGroup>
     </LinearLayout>
 </layout>

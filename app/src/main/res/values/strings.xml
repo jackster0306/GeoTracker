@@ -3,6 +3,8 @@
     <string name="title_activity_data_view">DataView</string>
     <string name="add_geofence_string">Add Geofence</string>
     <string name="edit_geofence_string">Edit Geofence</string>
+    <string name="delete_geofence_string">Delete Geofence</string>
+    <string name="geofence_name_string">Geofence Name</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
@@ -13,6 +15,17 @@
         <item>Good</item>
         <item>Bad</item>
     </string-array>
+
+    <string name="delete_journey_string">Delete Journey</string>
+    <string name="edit_journey_string">Edit Journey</string>
+    <string name="enter_name_string">Enter Name</string>
+    <string name="walk_string">Walk</string>
+    <string name="run_string">Run</string>
+    <string name="cycle_string">Cycle</string>
+    <string name="close_dialog_string">Close Dialog</string>
+    <string name="location_note_string">Note for this location</string>
+    <string name="classification_string">Classification:</string>
+    <string name="show_details_string">Show Details</string>
 
 
 
@@ -77,6 +90,5 @@
         <item>high</item>
     </string-array>
 
-    <!-- Add other array resources as needed -->
 
 </resources>

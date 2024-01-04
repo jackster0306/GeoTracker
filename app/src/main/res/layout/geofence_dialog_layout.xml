@@ -10,20 +10,20 @@
         android:id="@+id/geofenceNameEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Geofence Name"/>
+        android:hint="@string/geofence_name_string"/>
 
     <EditText
         android:id="@+id/geofenceNoteEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Note for this Location"
+        android:hint="@string/location_note_string"
         android:paddingTop="8dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
-        android:text="Classification:"/>
+        android:text="@string/classification_string"/>
     <Spinner
         android:id="@+id/geofenceClassificationSpinner"
         android:layout_width="match_parent"

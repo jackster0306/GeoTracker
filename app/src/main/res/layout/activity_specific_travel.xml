@@ -89,7 +89,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Edit Journey"
+                    android:text="@string/edit_journey_string"
                     android:onClick="onEditJourneyPressed"
                     android:layout_marginEnd="5dp"/>
 
@@ -98,7 +98,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Delete Journey"
+                    android:text="@string/delete_journey_string"
                     android:onClick="onDeleteJourneyPressed"
                     android:layout_marginStart="5dp"/>
             </LinearLayout>

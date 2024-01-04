@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:onClick="onShowMapPressed"
-            android:text="Show Map"
+            android:text="@string/show_details_string"
             android:tag="@{travelItem.name}"/>
 
 
