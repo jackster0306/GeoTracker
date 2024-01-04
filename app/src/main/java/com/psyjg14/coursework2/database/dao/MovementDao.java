@@ -1,8 +1,12 @@
 package com.psyjg14.coursework2.database.dao;
 
+import android.database.Cursor;
+
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 
 import com.psyjg14.coursework2.database.entities.MovementEntity;
@@ -30,4 +34,18 @@ public interface MovementDao {
 
     @Insert
     void insertMovement(MovementEntity movement);
+
+    @Delete
+    int deleteMovement(MovementEntity movement);
+
+    @Query("SELECT * FROM movemententity")
+    Cursor getAllMovementsAsCursor();
+
+    @Insert
+    long insertMovementAndGetId(MovementEntity movementEntity);
+
+    @Update
+    int updateMovement(MovementEntity movementEntity);
+
+
 }

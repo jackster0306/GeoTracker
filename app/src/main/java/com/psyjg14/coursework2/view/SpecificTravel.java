@@ -6,15 +6,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,6 +38,7 @@ import com.psyjg14.coursework2.databinding.ActivitySpecificTravelBinding;
 
 import com.psyjg14.coursework2.viewmodel.SpecificTravelViewModel;
 
+import java.util.List;
 import java.util.Objects;
 
 public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallback {
@@ -74,6 +78,7 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             Log.d("COMP3018", "************************8Distance: " + movementEntity.distanceTravelled + ", Time: " + movementEntity.timeTaken + ", Type: " + movementEntity.movementType + ", TimeStamp: " + movementEntity.timeStamp + ", Path: " + movementEntity.path);
             specificTravelViewModel.setDistance(movementEntity.distanceTravelled);
             specificTravelViewModel.setTimeTaken(movementEntity.timeTaken);
+            Log.e("COMP3018", "************************8Type: " + movementEntity.movementType);
             specificTravelViewModel.setTravelType(movementEntity.movementType);
             specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
             specificTravelViewModel.setPath(movementEntity.path);
@@ -86,6 +91,10 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
+
+        specificTravelViewModel.getTravelType().observe(this, s -> {
+            specificTravelViewModel.setChecked();
+        });
     }
 
     @Override
@@ -138,6 +147,99 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         specificTravelViewModel.setName(savedInstanceState.getString("name"));
+    }
+
+    public void onDeleteJourneyPressed(View v){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete Journey");
+        builder.setMessage("Are you sure you want to delete this journey?");
+
+        builder.setPositiveButton("Delete", (dialog, which) -> new Thread(() -> {
+            AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
+            MovementDao movementDao = db.movementDao();
+            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
+            movementDao.deleteMovement(movementEntity);
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Journey Deleted", Toast.LENGTH_SHORT).show();
+                onBackArrowPressed(null);
+            });
+        }).start());
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    public void onEditJourneyPressed(View v){
+        Log.d("COMP3018", "isWalk: " + specificTravelViewModel.getIsWalk().getValue() + ", isRun: " + specificTravelViewModel.getIsRun().getValue() + ", isCycle: " + specificTravelViewModel.getIsCycle().getValue());
+        AlertDialog.Builder builder = new AlertDialog.Builder(SpecificTravel.this);
+        builder.setTitle("Edit Journey");
+
+        View dialogView = getLayoutInflater().inflate(R.layout.edit_journey_dialog, null);
+        builder.setView(dialogView);
+
+
+        if(specificTravelViewModel.getIsWalk().getValue()){
+            ((RadioButton) dialogView.findViewById(R.id.walkRadioButton)).setChecked(true);
+        } else if (specificTravelViewModel.getIsRun().getValue()) {
+            ((RadioButton) dialogView.findViewById(R.id.runRadioButton)).setChecked(true);
+        } else if (specificTravelViewModel.getIsCycle().getValue()){
+            ((RadioButton) dialogView.findViewById(R.id.cycleRadioButton)).setChecked(true);
+        }
+
+        EditText nameInput = dialogView.findViewById(R.id.editTextName);
+        nameInput.setText(specificTravelViewModel.getName().getValue());
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String newName = nameInput.getText().toString();
+            if(newName.equals("")){
+                Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+            } else {
+                new Thread(() -> {
+                    if(newName.equals(specificTravelViewModel.getName().getValue())){
+                        AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
+                        MovementDao movementDao = db.movementDao();
+                        MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
+                        movementEntity.movementType = specificTravelViewModel.getTravelType().getValue().toLowerCase();
+                        movementDao.updateMovement(movementEntity);
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                            //.setTravelTypeText();
+                        });
+                    } else{
+                        List<MovementEntity> movements = DatabaseSingleton.getDatabaseInstance(this).movementDao().getAllMovements();
+                        boolean nameExists = false;
+                        for(MovementEntity movement : movements){
+                            if(movement.movementName.equals(newName)){
+                                nameExists = true;
+                            }
+                        }
+
+                        if(nameExists){
+                            Toast.makeText(this, "Name already exists, cancelling edit", Toast.LENGTH_SHORT).show();
+                            dialog.cancel();
+                        } else{
+                            AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
+                            MovementDao movementDao = db.movementDao();
+                            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
+                            movementDao.deleteMovement(movementEntity);
+                            movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
+                            movementEntity.movementType = specificTravelViewModel.getTravelType().getValue().toLowerCase();
+                            movementDao.insertMovement(movementEntity);
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                                specificTravelViewModel.setName(newName);
+                            });
+                        }
+                    }
+
+                }).start();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 
 }

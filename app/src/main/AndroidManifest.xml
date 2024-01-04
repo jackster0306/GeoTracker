@@ -58,6 +58,11 @@
             android:name=".model.GeofenceBroadcastReceiver"
             android:exported="false" />
 
+        <provider
+            android:name=".MyAppContentProvider"
+            android:authorities="com.psyjg14.coursework2.MyAppContentProvider"
+            android:exported="false" />
+
 
         <meta-data
             android:name="com.google.android.gms.version"

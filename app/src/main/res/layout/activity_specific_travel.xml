@@ -77,6 +77,32 @@
                 android:layout_marginTop="10dp"
                 android:text="@{viewModel.travelType}" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp">
+
+                <Button
+                    android:id="@+id/editJourneyButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Edit Journey"
+                    android:onClick="onEditJourneyPressed"
+                    android:layout_marginEnd="5dp"/>
+
+                <Button
+                    android:id="@+id/deleteJourneyButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Delete Journey"
+                    android:onClick="onDeleteJourneyPressed"
+                    android:layout_marginStart="5dp"/>
+            </LinearLayout>
+
             <FrameLayout
                 android:id="@+id/specificMapFrameLayout"
                 android:layout_width="match_parent"

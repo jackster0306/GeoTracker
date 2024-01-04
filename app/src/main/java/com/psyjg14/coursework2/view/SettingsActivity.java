@@ -12,6 +12,8 @@ import androidx.preference.PreferenceFragmentCompat;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivitySettingsBinding;
 import com.psyjg14.coursework2.viewmodel.SettingsViewModel;
@@ -31,6 +33,21 @@ public class SettingsActivity extends AppCompatActivity {
         binding.setViewModel(settingsViewModel);
         binding.setLifecycleOwner(this);
 
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.settingsFragment, new SettingsFragment())
+                .commit();
+
+        BottomNavigationView navBar;
+        navBar = binding.settingsNavBar;
+
+        navBar.setSelectedItemId(R.id.settingsMenu);
+
+        navBar.setOnItemSelectedListener(item -> {
+            NavBarManager instance = NavBarManager.getInstance();
+            int itemId = item.getItemId();
+            return instance.navBarItemPressed(SettingsActivity.this, itemId, R.id.settingsMenu);
+        });
+
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -39,9 +56,9 @@ public class SettingsActivity extends AppCompatActivity {
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-        getSupportFragmentManager().beginTransaction()
-                .replace(android.R.id.content, new SettingsFragment())
-                .commit();
+
+
+
     }
 
 
@@ -112,6 +129,7 @@ public class SettingsActivity extends AppCompatActivity {
 
 
     public void onBack(){
+        NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
     }
 
