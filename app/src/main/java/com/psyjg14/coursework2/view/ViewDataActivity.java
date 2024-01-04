@@ -5,8 +5,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -43,6 +45,11 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         viewDataViewModel = new ViewModelProvider(this).get(ViewDataViewModel.class);
         binding.setViewModel(viewDataViewModel);
         binding.setLifecycleOwner(this);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String distanceUnit = preferences.getString(getString(R.string.pref_unit_system_key), "");
+        viewDataViewModel.setDistanceUnit(distanceUnit);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.dataMap);
         assert mapFragment != null;

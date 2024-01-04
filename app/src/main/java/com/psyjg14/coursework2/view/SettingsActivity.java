@@ -8,9 +8,11 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.NavBarManager;
@@ -32,6 +34,7 @@ public class SettingsActivity extends AppCompatActivity {
         settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
         binding.setViewModel(settingsViewModel);
         binding.setLifecycleOwner(this);
+
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.settingsFragment, new SettingsFragment())
@@ -105,6 +108,9 @@ public class SettingsActivity extends AppCompatActivity {
             // Update the summary of the preference based on the current value
             if (preference instanceof ListPreference) {
                 ListPreference listPreference = (ListPreference) preference;
+                if(listPreference.getEntry() == null){
+                    listPreference.setValueIndex(0);
+                }
                 if(listPreference.getKey().equals(getString(R.string.pref_location_accuracy_key))){
                     String originalSummary = getString(R.string.pref_location_accuracy_summary);
                     String summary =  String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());

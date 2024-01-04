@@ -31,6 +31,8 @@ public class ViewDataViewModel extends AndroidViewModel {
 
     private final MovementDao movementDao;
 
+    private String distanceUnit;
+
     public ViewDataViewModel(Application application) {
         super(application);
         AppDatabase appDatabase = DatabaseSingleton.getDatabaseInstance(application.getApplicationContext());
@@ -79,7 +81,13 @@ public class ViewDataViewModel extends AndroidViewModel {
                         time += movement.timeTaken;
                     }
                 }
-                distanceTravelled.postValue(String.format("Distance Travelled: %.2f", distance/1000) + " kilometres");
+                if(distanceUnit.equals("metric")){
+                    distanceTravelled.postValue("Distance Travelled: " + distance/1000 + " kilometres");
+                }
+                else{
+                    distanceTravelled.postValue("Distance Travelled: " + distance*0.000621371 + " miles");
+                }
+//                distanceTravelled.postValue(String.format("Distance Travelled: %.2f", distance/1000) + " kilometres");
                 timeTaken.postValue(String.format("Time Taken: %d", time) + " seconds");
                 numOfSessions.postValue("Number of Sessions: " + movements.size());
             }).start();
@@ -137,5 +145,9 @@ public class ViewDataViewModel extends AndroidViewModel {
             }
         }).start();
         return path;
+    }
+
+    public void setDistanceUnit(String distanceUnit){
+        this.distanceUnit = distanceUnit;
     }
 }

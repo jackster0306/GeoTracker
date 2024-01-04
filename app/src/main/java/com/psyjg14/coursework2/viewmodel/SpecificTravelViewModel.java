@@ -17,7 +17,7 @@ public class SpecificTravelViewModel extends ViewModel {
     private MutableLiveData<String> name = new MutableLiveData<>();
     private MutableLiveData<String> distanceText = new MutableLiveData<>();
     private MutableLiveData<String> timeTakenText = new MutableLiveData<>();
-    private MutableLiveData<String> travelType = new MutableLiveData<>();
+    private MutableLiveData<String> travelTypeText = new MutableLiveData<>();
     private MutableLiveData<String> completionTimeText = new MutableLiveData<>();
 
     private String distanceUnit;
@@ -25,6 +25,7 @@ public class SpecificTravelViewModel extends ViewModel {
     private MutableLiveData<Boolean> isWalk = new MutableLiveData<>();
     private MutableLiveData<Boolean> isRun = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCycle = new MutableLiveData<>();
+    private String travelType;
 
     public SpecificTravelViewModel(){
         isWalk.setValue(false);
@@ -40,14 +41,18 @@ public class SpecificTravelViewModel extends ViewModel {
 
         if(buttonID == R.id.walkRadioButton){
             Log.d("COMP3018", "onRadioButtonPressed: walk");
-            travelType.setValue("Travel Type: walk");
+            travelTypeText.setValue("Travel Type: walk");
+            travelType = "walk";
         } else if(buttonID == R.id.runRadioButton){
             Log.d("COMP3018", "onRadioButtonPressed: run");
-            travelType.setValue("Travel Type: run");
+            travelTypeText.setValue("Travel Type: run");
+            travelType = "run";
         } else if(buttonID == R.id.cycleRadioButton){
             Log.d("COMP3018", "onRadioButtonPressed: cycle");
-            travelType.setValue("Travel Type: cycle");
+            travelTypeText.setValue("Travel Type: cycle");
+            travelType = "cycle";
         }
+        setChecked();
     }
 
     public void setDistanceUnit(String distanceUnit){
@@ -88,12 +93,12 @@ public class SpecificTravelViewModel extends ViewModel {
         return timeTakenText;
     }
 
-    public void setTravelType(String type){
-        travelType.postValue("Travel Type: " + type);
+    public void setTravelTypeText(String type){
+        travelTypeText.postValue("Travel Type: " + type);
     }
 
-    public MutableLiveData<String> getTravelType() {
-        return travelType;
+    public MutableLiveData<String> getTravelTypeText() {
+        return travelTypeText;
     }
 
 
@@ -105,24 +110,30 @@ public class SpecificTravelViewModel extends ViewModel {
     }
 
     public void setChecked(){
-        Log.d("COMP3018", "setChecked: " + travelType.getValue());
-        if(travelType.getValue().equals("Travel Type: walk")){
-            Log.d("COMP3018", "setChecked: walk");
-            isWalk.setValue(true);
-        } else if(travelType.getValue().equals("Travel Type: run")){
-            Log.d("COMP3018", "setChecked: run");
-            isRun.setValue(true);
-        } else if(travelType.getValue().equals("Travel Type: cycle")){
-            Log.d("COMP3018", "setChecked: cycle");
-            isCycle.setValue(true);
-        }
-//        if(type.equals("walk")){
-//            isWalk.postValue(true);
-//        } else if(type.equals("run")){
-//            isRun.postValue(true);
-//        } else if(type.equals("cycle")){
-//            isCycle.postValue(true);
+        Log.d("COMP3018", "setChecked: " + travelTypeText.getValue());
+//        if(travelTypeText.getValue().equals("Travel Type: walk")){
+//            Log.d("COMP3018", "setChecked: walk");
+//            isWalk.setValue(true);
+//        } else if(travelTypeText.getValue().equals("Travel Type: run")){
+//            Log.d("COMP3018", "setChecked: run");
+//            isRun.setValue(true);
+//        } else if(travelTypeText.getValue().equals("Travel Type: cycle")){
+//            Log.d("COMP3018", "setChecked: cycle");
+//            isCycle.setValue(true);
 //        }
+        if(travelType.equals("walk")){
+            isWalk.setValue(true);
+            isRun.setValue(false);
+            isCycle.setValue(false);
+        } else if(travelType.equals("run")){
+            isRun.setValue(true);
+            isWalk.setValue(false);
+            isCycle.setValue(false);
+        } else if(travelType.equals("cycle")){
+            isCycle.setValue(true);
+            isWalk.setValue(false);
+            isRun.setValue(false);
+        }
     }
 
     public LiveData<Boolean> getIsWalk() {
@@ -141,7 +152,11 @@ public class SpecificTravelViewModel extends ViewModel {
         return isCycle;
     }
 
+    public String getTravelType() {
+        return travelType;
+    }
 
-
-
+    public void setTravelType(String travelType) {
+        this.travelType = travelType;
+    }
 }

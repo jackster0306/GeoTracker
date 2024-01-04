@@ -7,6 +7,8 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
+
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -56,6 +59,8 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         binding.setViewModel(specificTravelViewModel);
         binding.setLifecycleOwner(this);
 
+
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.specificMapFragment);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
@@ -79,9 +84,10 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             specificTravelViewModel.setDistance(movementEntity.distanceTravelled);
             specificTravelViewModel.setTimeTaken(movementEntity.timeTaken);
             Log.e("COMP3018", "************************8Type: " + movementEntity.movementType);
-            specificTravelViewModel.setTravelType(movementEntity.movementType);
+            specificTravelViewModel.setTravelTypeText(movementEntity.movementType);
             specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
             specificTravelViewModel.setPath(movementEntity.path);
+            specificTravelViewModel.setTravelType(movementEntity.movementType);
         }).start();
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -92,9 +98,9 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-        specificTravelViewModel.getTravelType().observe(this, s -> {
-            specificTravelViewModel.setChecked();
-        });
+//        specificTravelViewModel.getTravelTypeText().observe(this, s -> {
+//            specificTravelViewModel.setChecked();
+//        });
     }
 
     @Override
@@ -190,8 +196,15 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         EditText nameInput = dialogView.findViewById(R.id.editTextName);
         nameInput.setText(specificTravelViewModel.getName().getValue());
 
+        RadioGroup radioGroup = dialogView.findViewById(R.id.radioGroup);
+
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> specificTravelViewModel.onRadioButtonPressed(checkedId));
+
+
         builder.setPositiveButton("Save", (dialog, which) -> {
             String newName = nameInput.getText().toString();
+            //int selectedRadioButtonId = radioGroup.getCheckedRadioButtonId();
+            //String selectedRadioButtonText = ((RadioButton) dialogView.findViewById(selectedRadioButtonId)).getText().toString();
             if(newName.equals("")){
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
             } else {
@@ -200,11 +213,11 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
                         AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
                         MovementDao movementDao = db.movementDao();
                         MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
-                        movementEntity.movementType = specificTravelViewModel.getTravelType().getValue().toLowerCase();
+                        movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
                         movementDao.updateMovement(movementEntity);
                         runOnUiThread(() -> {
                             Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
-                            //.setTravelTypeText();
+                            specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
                         });
                     } else{
                         List<MovementEntity> movements = DatabaseSingleton.getDatabaseInstance(this).movementDao().getAllMovements();
@@ -224,15 +237,15 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
                             MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
                             movementDao.deleteMovement(movementEntity);
                             movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
-                            movementEntity.movementType = specificTravelViewModel.getTravelType().getValue().toLowerCase();
+                            movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
                             movementDao.insertMovement(movementEntity);
                             runOnUiThread(() -> {
                                 Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
                                 specificTravelViewModel.setName(newName);
+                                specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
                             });
                         }
                     }
-
                 }).start();
             }
         });
