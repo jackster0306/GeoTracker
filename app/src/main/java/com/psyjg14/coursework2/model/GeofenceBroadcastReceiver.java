@@ -1,5 +1,6 @@
 package com.psyjg14.coursework2.model;
 
+import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,13 +14,11 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.room.Room;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
-import com.psyjg14.coursework2.DatabaseSingleton;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.view.MainActivity;
 
@@ -31,7 +30,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(TAG, "onReceive: GeofenceBroadcastReceiver");
+        Log.d(TAG, "****************************88onReceive: GeofenceBroadcastReceiver");
 
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
@@ -50,22 +49,24 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         if (transition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             Log.e(TAG, "onReceive: ENTER");
-            new Thread(() -> {
-                Log.d(TAG, "onReceive: THREAD");
-                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
-                GeofenceDao geofenceDao = db.geofenceDao();
+            DatabaseRepository databaseRepository = new DatabaseRepository((Application) context.getApplicationContext());
+            LiveData<GeofenceEntity> liveData = databaseRepository.getGeofenceByID(Objects.requireNonNull(Objects.requireNonNull(geofencingEvent.getTriggeringGeofences()).get(0)).getRequestId());
+            liveData.observeForever(new Observer<GeofenceEntity>() {
+                @Override
+                public void onChanged(GeofenceEntity geofenceEntity) {
+                    Log.d(TAG, "onReceive, GEOFENCE ENTITY: " + geofenceEntity);
+                    if(geofenceEntity != null){
+                        String geofenceName = geofenceEntity.name;
+                        String geofenceClassification = geofenceEntity.classification;
+                        String geofenceNote = geofenceEntity.geofenceNote;
 
-                Geofence geofenceTriggered = Objects.requireNonNull(geofencingEvent.getTriggeringGeofences()).get(0);
-                GeofenceEntity geofenceEntity = geofenceDao.getGeofenceByID(geofenceTriggered.getRequestId());
-                if(geofenceEntity != null){
-                    String geofenceName = geofenceEntity.name;
-                    String geofenceClassification = geofenceEntity.classification;
-                    String geofenceNote = geofenceEntity.geofenceNote;
-
-                    new Handler(Looper.getMainLooper()).post(() -> handleStartForegroundNotification(context, geofenceName, geofenceClassification, geofenceNote));
+                        handleStartForegroundNotification(context, geofenceName, geofenceClassification, geofenceNote);
+                        new Handler(Looper.getMainLooper()).post(() -> handleStartForegroundNotification(context, geofenceName, geofenceClassification, geofenceNote));
+                    }
+                    liveData.removeObserver(this);
                 }
-                Log.d(TAG, "THREAD, geofenceEntity: " + geofenceEntity);
-            }).start();
+            });
+
             Log.d(TAG, "onReceive: ENTER");
         } else if (transition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             Log.d(TAG, "onReceive: EXIT");

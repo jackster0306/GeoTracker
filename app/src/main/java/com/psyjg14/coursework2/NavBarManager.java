@@ -22,7 +22,7 @@ public class NavBarManager {
 
 
     private NavBarManager() {
-        // Private constructor to prevent instantiation
+
     }
 
     public static NavBarManager getInstance() {

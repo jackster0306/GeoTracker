@@ -47,14 +47,11 @@
     <string name="pref_update_periods_dialog_title">Select Update Periods</string>
     <string name="pref_update_periods_default">1</string>
 
-    <string name="pref_help_category_title">Help</string>
-    <string name="pref_help_faq_key">faq_preference</string>
-    <string name="pref_help_faq_title">FAQ</string>
-    <string name="pref_help_faq_summary">Frequently Asked Questions</string>
-
-    <string name="pref_help_contact_key">contact_preference</string>
-    <string name="pref_help_contact_title">Contact Us</string>
-    <string name="pref_help_contact_summary">Reach out for assistance</string>
+    <string name="pref_tracking_key">tracking_preference</string>
+    <string name="pref_tracking_title">Journey Tracking</string>
+    <string name="pref_tracking_summary">Choose whether to continue tracking a journey when app is fully closed</string>
+    <string name="pref_tracking_dialog_title">Select Tracking Preference</string>
+    <string name="pref_tracking_default">1</string>
 
     <string-array name="location_accuracy_options">
         <item>High Accuracy</item>
@@ -88,6 +85,16 @@
         <item>low</item>
         <item>medium</item>
         <item>high</item>
+    </string-array>
+
+    <string-array name="tracking_options">
+        <item>Track when fully closed</item>
+        <item>Stop tracking when fully closed</item>
+    </string-array>
+
+    <string-array name="tracking_values">
+        <item>track</item>
+        <item>stop</item>
     </string-array>
 
 

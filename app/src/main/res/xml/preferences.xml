@@ -31,4 +31,13 @@
         app:entryValues="@array/update_periods_values"
         app:defaultValue="@string/pref_update_periods_default" />
 
+    <ListPreference
+        app:key="@string/pref_tracking_key"
+        app:title="@string/pref_tracking_title"
+        app:summary="@string/pref_tracking_summary"
+        app:dialogTitle="@string/pref_tracking_dialog_title"
+        app:entries="@array/tracking_options"
+        app:entryValues="@array/tracking_values"
+        app:defaultValue="@string/pref_tracking_default" />
+
 </PreferenceScreen>

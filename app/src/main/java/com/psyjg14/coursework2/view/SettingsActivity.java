@@ -93,7 +93,8 @@ public class SettingsActivity extends AppCompatActivity {
             // Handle the change in preferences
             if (key.equals(getString(R.string.pref_location_accuracy_key))
                     || key.equals(getString(R.string.pref_unit_system_key))
-                    || key.equals(getString(R.string.pref_update_periods_key))) {
+                    || key.equals(getString(R.string.pref_update_periods_key))
+                    || key.equals(getString(R.string.pref_tracking_key))) {
                 updatePreferenceSummary(findPreference(key));
             }
         }
@@ -102,6 +103,7 @@ public class SettingsActivity extends AppCompatActivity {
             updatePreferenceSummary(findPreference(getString(R.string.pref_location_accuracy_key)));
             updatePreferenceSummary(findPreference(getString(R.string.pref_unit_system_key)));
             updatePreferenceSummary(findPreference(getString(R.string.pref_update_periods_key)));
+            updatePreferenceSummary(findPreference(getString(R.string.pref_tracking_key)));
         }
 
         private void updatePreferenceSummary(Preference preference) {
@@ -123,6 +125,10 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 else if(listPreference.getKey().equals(getString(R.string.pref_update_periods_key))) {
                     String originalSummary = getString(R.string.pref_update_periods_summary);
+                    String summary = String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());
+                    preference.setSummary(HtmlCompat.fromHtml(summary, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                } else if (listPreference.getKey().equals(getString(R.string.pref_tracking_key))) {
+                    String originalSummary = getString(R.string.pref_tracking_summary);
                     String summary = String.format("%s<br/><b>%s</b>", originalSummary, listPreference.getEntry());
                     preference.setSummary(HtmlCompat.fromHtml(summary, HtmlCompat.FROM_HTML_MODE_LEGACY));
                 }

@@ -31,11 +31,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivitySpecificTravelBinding;
 
@@ -75,20 +72,16 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         String distanceUnit = preferences.getString(getString(R.string.pref_unit_system_key), "");
         specificTravelViewModel.setDistanceUnit(distanceUnit);
 
-        new Thread(() -> {
-            AppDatabase db = DatabaseSingleton.getDatabaseInstance(SpecificTravel.this);
-            MovementDao movementDao = db.movementDao();
-            Log.d("COMP3018", "************************8Name: " + specificTravelViewModel.getName().getValue());
-            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
-            Log.d("COMP3018", "************************8Distance: " + movementEntity.distanceTravelled + ", Time: " + movementEntity.timeTaken + ", Type: " + movementEntity.movementType + ", TimeStamp: " + movementEntity.timeStamp + ", Path: " + movementEntity.path);
-            specificTravelViewModel.setDistance(movementEntity.distanceTravelled);
-            specificTravelViewModel.setTimeTaken(movementEntity.timeTaken);
-            Log.e("COMP3018", "************************8Type: " + movementEntity.movementType);
-            specificTravelViewModel.setTravelTypeText(movementEntity.movementType);
-            specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
-            specificTravelViewModel.setPath(movementEntity.path);
-            specificTravelViewModel.setTravelType(movementEntity.movementType);
-        }).start();
+        specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
+            if(movementEntity != null){
+                specificTravelViewModel.setDistance(movementEntity.distanceTravelled);
+                specificTravelViewModel.setTimeTaken(movementEntity.timeTaken);
+                specificTravelViewModel.setTravelTypeText(movementEntity.movementType);
+                specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
+                specificTravelViewModel.setPath(movementEntity.path);
+                specificTravelViewModel.setTravelType(movementEntity.movementType);
+            }
+        });
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
@@ -97,10 +90,6 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
-
-//        specificTravelViewModel.getTravelTypeText().observe(this, s -> {
-//            specificTravelViewModel.setChecked();
-//        });
     }
 
     @Override
@@ -160,16 +149,14 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         builder.setTitle("Delete Journey");
         builder.setMessage("Are you sure you want to delete this journey?");
 
-        builder.setPositiveButton("Delete", (dialog, which) -> new Thread(() -> {
-            AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
-            MovementDao movementDao = db.movementDao();
-            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
-            movementDao.deleteMovement(movementEntity);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Journey Deleted", Toast.LENGTH_SHORT).show();
-                onBackArrowPressed(null);
-            });
-        }).start());
+        builder.setPositiveButton("Delete", (dialog, which) ->
+                specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
+                    if(movementEntity != null){
+                        specificTravelViewModel.deleteMovement(movementEntity);
+                        Toast.makeText(this, "Journey Deleted", Toast.LENGTH_SHORT).show();
+                        onBackArrowPressed(null);
+                    }
+                }));
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
@@ -208,45 +195,40 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
             if(newName.equals("")){
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
             } else {
-                new Thread(() -> {
                     if(newName.equals(specificTravelViewModel.getName().getValue())){
-                        AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
-                        MovementDao movementDao = db.movementDao();
-                        MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
-                        movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
-                        movementDao.updateMovement(movementEntity);
-                        runOnUiThread(() -> {
-                            Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
-                            specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                        specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
+                            if(movementEntity != null){
+                                movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
+                                specificTravelViewModel.updateMovement(movementEntity);
+                                Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                                specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                            }
                         });
                     } else{
-                        List<MovementEntity> movements = DatabaseSingleton.getDatabaseInstance(this).movementDao().getAllMovements();
+                        List<MovementEntity> movements = specificTravelViewModel.getAllMovements().getValue();
                         boolean nameExists = false;
                         for(MovementEntity movement : movements){
                             if(movement.movementName.equals(newName)){
                                 nameExists = true;
                             }
                         }
-
                         if(nameExists){
                             Toast.makeText(this, "Name already exists, cancelling edit", Toast.LENGTH_SHORT).show();
                             dialog.cancel();
                         } else{
-                            AppDatabase db = DatabaseSingleton.getDatabaseInstance(this);
-                            MovementDao movementDao = db.movementDao();
-                            MovementEntity movementEntity = movementDao.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
-                            movementDao.deleteMovement(movementEntity);
-                            movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
-                            movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
-                            movementDao.insertMovement(movementEntity);
-                            runOnUiThread(() -> {
-                                Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
-                                specificTravelViewModel.setName(newName);
-                                specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                            specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
+                                if(movementEntity != null){
+                                    specificTravelViewModel.deleteMovement(movementEntity);
+                                    movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
+                                    movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
+                                    specificTravelViewModel.insertMovement(movementEntity);
+                                    Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                                    specificTravelViewModel.setName(newName);
+                                    specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                                }
                             });
                         }
                     }
-                }).start();
             }
         });
 

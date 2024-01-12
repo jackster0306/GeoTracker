@@ -2,6 +2,7 @@ package com.psyjg14.coursework2.database.dao;
 
 import android.database.Cursor;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -15,13 +16,13 @@ import java.util.List;
 @Dao
 public interface GeofenceDao {
     @Query("SELECT * FROM geofenceentity")
-    List<GeofenceEntity> getAllGeofences();
+    LiveData<List<GeofenceEntity>> getAllGeofences();
 
     @Query("SELECT * FROM geofenceentity WHERE name = :name")
-    GeofenceEntity getGeofenceByName(String name);
+    LiveData<GeofenceEntity> getGeofenceByName(String name);
 
     @Query("SELECT * FROM geofenceentity WHERE geofenceID = :geofenceID")
-    GeofenceEntity getGeofenceByID(String geofenceID);
+    LiveData<GeofenceEntity> getGeofenceByID(String geofenceID);
 
     @Query("DELETE FROM geofenceentity WHERE name = :geofenceName")
     int deleteGeofenceByName(String geofenceName);
@@ -34,9 +35,6 @@ public interface GeofenceDao {
 
     @Query("SELECT * FROM geofenceentity")
     Cursor getAllGeofencesAsCursor();
-
-    @Insert
-    long insertGeofenceAndGetId(GeofenceEntity geofenceEntity);
 
     @Update
     int updateGeofence(GeofenceEntity geofenceEntity);

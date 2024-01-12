@@ -9,13 +9,13 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Intent;
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -23,7 +23,6 @@ import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 
 import android.view.View;
 import android.widget.Spinner;
@@ -41,10 +40,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.DatabaseSingleton;
+import com.psyjg14.coursework2.MyContentProvider;
 import com.psyjg14.coursework2.NavBarManager;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 import com.psyjg14.coursework2.databinding.GeofenceDetailsLayoutBinding;
 import com.psyjg14.coursework2.model.GeofenceHelper;
@@ -52,7 +49,6 @@ import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivityMainBinding;
 import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -98,16 +94,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return instance.navBarItemPressed(MainActivity.this, itemId, R.id.mapMenu);
         });
 
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                AppDatabase db = DatabaseSingleton.getDatabaseInstance(MainActivity.this);
-
-                GeofenceDao userDao = db.geofenceDao();
-                mainActivityViewModel.setGeofences(userDao.getAllGeofences());
-                return null;
-            }
-        }.execute();
 
         geofenceHelper = new GeofenceHelper(this, this);
 
@@ -167,6 +153,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("COMP3018", "Update Periods: " + updatePeriods);
 
 
+        new Thread(() ->{
+            ContentResolver myAppContentProvider = getContentResolver();
+            Cursor cursor =  myAppContentProvider.query(MyContentProvider.GEOFENCES_URI, null, null, null, null);
+            if(cursor != null){
+                try{
+                    while(cursor.moveToNext()){
+                        for (int i = 0; i < cursor.getColumnCount(); i++) {
+                            Log.d("COMP3018", "Column: " + cursor.getColumnName(i) + " Data: " + cursor.getString(i));
+                        }
+                    }
+                }finally {
+                    Log.d("COMP3018", "Geofence Cursor closed\n");
+                    cursor.close();
+                }
+            }
+            Cursor cursor2 =  myAppContentProvider.query(MyContentProvider.MOVEMENTS_URI, null, null, null, null);
+            if(cursor2 != null){
+                try{
+                    while(cursor2.moveToNext()){
+                        for (int i = 0; i < cursor2.getColumnCount(); i++) {
+                            Log.d("COMP3018", "Column: " + cursor2.getColumnName(i) + " Data: " + cursor2.getString(i));
+                        }
+                    }
+                }finally {
+                    Log.d("COMP3018", "Movement Cursor closed\n");
+                    cursor2.close();
+                }
+            }
+        }).start();
+
+
+
     }
 
 
@@ -215,11 +233,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         map.setOnMapClickListener(this);
 
-        updateGeofencesOnMap();
+        mainActivityViewModel.getAllGeofences().observe(this, this::updateGeofencesOnMap);
+
         map.setOnCircleClickListener(circle -> {
             String geofenceName = Objects.requireNonNull(circle.getTag()).toString();
             //SETUP DIALOG THAT SHOWS, DISPLAYING NAME AND CLASSIFICATION WITH A DELETE BUTTON
-            geofenceHelper.getGeofences(geofences -> {
+            mainActivityViewModel.getAllGeofences().observe(this, geofences -> {
                 for (GeofenceEntity geofence : geofences) {
                     if (geofence.name.equals(geofenceName)) {
                         showGeofenceDetails(geofence);
@@ -229,11 +248,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    private void updateGeofencesOnMap(){
+    private void updateGeofencesOnMap(List<GeofenceEntity> geofences){
                     map.clear();
                     Log.d("COMP3018", "updateGeofencesOnMap");
-                    Log.d("COMP3018", "geofences size: " + mainActivityViewModel.getGeofences().size());
-                    for (GeofenceEntity geofence : mainActivityViewModel.getGeofences()) {
+                    Log.d("COMP3018", "geofences size: " + geofences.size());
+                    for (GeofenceEntity geofence : geofences) {
                         LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
                         int geofenceColour;
                         if(geofence.classification.equals("Good")) {
@@ -271,11 +290,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             AlertDialog dialog = builder.create();
             dialog.show();
 
-        detailsBinding.deleteGeofenceButton.setOnClickListener(v -> geofenceHelper.removeGeofence(geofence, geofences -> {
-            mainActivityViewModel.setGeofences(geofences);
-            updateGeofencesOnMap();
-            dialog.cancel();
-        }));
+            detailsBinding.deleteGeofenceButton.setOnClickListener(v -> geofenceHelper.removeGeofence(geofence));
 
             detailsBinding.closeDialogButton.setOnClickListener(view -> dialog.cancel());
     }
@@ -356,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             String geofenceNote = noteInput.getText().toString();
             boolean isDuplicate = false;
             Log.d("COMP3018", "geofenceName: " + geofenceName);
-            for(GeofenceEntity geofence : mainActivityViewModel.getGeofences()){
+            for(GeofenceEntity geofence : Objects.requireNonNull(mainActivityViewModel.getAllGeofences().getValue())){
                 Log.d("COMP3018", "Geofence Name from Current Geofences: " + geofence.name + " geofenceName to add: " + geofenceName);
                 if(geofence.name.equals(geofenceName)){
                     isDuplicate = true;
@@ -371,13 +386,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             else {
                 Toast.makeText(MainActivity.this, "Geofence added", Toast.LENGTH_SHORT).show();
-                geofenceHelper.addGeofence(geofenceName, geofenceClassification, geofenceMarker.getPosition(), GEOFENCE_RADIUS, geofenceNote, () -> geofenceHelper.getGeofences(geofences -> {
-                    Log.d("COMP3018", "GeofenceCallback: " + geofences.size());
-                    mainActivityViewModel.setGeofences(geofences);
-                    updateGeofencesOnMap();
-                }));
-
+                geofenceHelper.addGeofence(geofenceName, geofenceClassification, geofenceMarker.getPosition(), GEOFENCE_RADIUS, geofenceNote);
             }
+            dialog.cancel();
         });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());

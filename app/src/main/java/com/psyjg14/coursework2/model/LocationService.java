@@ -62,6 +62,8 @@ public class LocationService extends Service {
 
     private int updateDistance = 50;
 
+    private boolean trackWhenClosed = true;
+
     public interface MyLocationCallback {
         void onLocationChanged(Location location);
 
@@ -115,10 +117,7 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "*************************onStartCommand: LocationService*************************");
 
-//        new Thread(()-> {
         startLocationUpdates(createLocationRequest());
-
-//        }).start();
 
 
         return START_STICKY;
@@ -207,7 +206,7 @@ public class LocationService extends Service {
         return isUpdating;
     }
 
-    public void setupLocation(String locationPriorityString, String updateDistanceString){
+    public void setupLocation(String locationPriorityString, String updateDistanceString, String trackWhenClosedString){
         if (locationPriorityString.equals("high")){
             locationPriority = Priority.PRIORITY_HIGH_ACCURACY;
         } else if(locationPriorityString.equals("balanced")){
@@ -224,5 +223,21 @@ public class LocationService extends Service {
             updateDistance = 50;
         }
 
+        if(trackWhenClosedString.equals("track")){
+            trackWhenClosed = true;
+        } else{
+            trackWhenClosed = false;
+        }
+
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Log.d(TAG, "onTaskRemoved: LocationService");
+        if(!trackWhenClosed){
+            //Do database stuff here
+            stopLocationUpdates();
+            super.onTaskRemoved(rootIntent);
+        }
     }
 }

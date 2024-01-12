@@ -2,6 +2,7 @@ package com.psyjg14.coursework2.database.dao;
 
 import android.database.Cursor;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -16,20 +17,20 @@ import java.util.List;
 @Dao
 public interface MovementDao {
     @Query("SELECT * FROM movemententity")
-    List<MovementEntity> getAllMovements();
+    LiveData<List<MovementEntity>> getAllMovements();
 
     @Query("SELECT * FROM movemententity WHERE movementName = :movementName")
-    MovementEntity getMovementById(String movementName);
+    LiveData<MovementEntity> getMovementById(String movementName);
 
     @Query("SELECT * FROM movemententity WHERE movementType = :movementType AND timestamp >= :startTime AND timestamp <= :endTime")
-    List<MovementEntity> getMovementEntitiesByTimeAndType(String movementType, long startTime, long endTime);
+    LiveData<List<MovementEntity>> getMovementEntitiesByTimeAndType(String movementType, long startTime, long endTime);
 
     @Query("SELECT * FROM movemententity WHERE timestamp >= :startTime AND timestamp <= :endTime")
-    List<MovementEntity> getMovementEntitiesByTime(long startTime, long endTime);
+    LiveData<List<MovementEntity>> getMovementEntitiesByTime(long startTime, long endTime);
 
 
     @Query("SELECT * FROM movemententity ORDER BY timestamp DESC LIMIT 1")
-    MovementEntity getLastEntity();
+    LiveData<MovementEntity> getLastEntity();
 
 
     @Insert
@@ -40,9 +41,6 @@ public interface MovementDao {
 
     @Query("SELECT * FROM movemententity")
     Cursor getAllMovementsAsCursor();
-
-    @Insert
-    long insertMovementAndGetId(MovementEntity movementEntity);
 
     @Update
     int updateMovement(MovementEntity movementEntity);

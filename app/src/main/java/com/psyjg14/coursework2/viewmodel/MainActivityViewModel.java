@@ -1,12 +1,16 @@
 package com.psyjg14.coursework2.viewmodel;
 
 
+import android.app.Application;
+
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
+import com.psyjg14.coursework2.model.DatabaseRepository;
 
 import androidx.lifecycle.MutableLiveData;
 
@@ -14,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivityViewModel extends ViewModel {
+public class MainActivityViewModel extends AndroidViewModel {
         private MutableLiveData<Boolean> addingGeofence = new MutableLiveData<>();
         private boolean requestingLocationUpdates = false;
         private Marker geofenceMarker;
@@ -24,15 +28,18 @@ public class MainActivityViewModel extends ViewModel {
 
         private final List<LatLng> path = new ArrayList<>();
 
-        List<GeofenceEntity> geofences = new ArrayList<>();
+        private DatabaseRepository databaseRepository;
+        private LiveData<List<GeofenceEntity>> geofencesLiveData;
 
-
-        public List<GeofenceEntity> getGeofences() {
-            return geofences;
+        public MainActivityViewModel(Application application) {
+            super(application);
+            databaseRepository = new DatabaseRepository(application);
+            geofencesLiveData = databaseRepository.getAllGeofences();
+            addingGeofence.setValue(false);
         }
 
-        public void setGeofences(List<GeofenceEntity> geofences) {
-            this.geofences = geofences;
+        public LiveData<List<GeofenceEntity>> getAllGeofences() {
+            return geofencesLiveData;
         }
 
         public List<LatLng> getPath() {
@@ -44,9 +51,6 @@ public class MainActivityViewModel extends ViewModel {
                 return geofenceFirstPressed;
         }
 
-        public MainActivityViewModel() {
-                addingGeofence.setValue(false);
-        }
 
         public void setGeofenceMarker(Marker geofenceMarker) {
             this.geofenceMarker = geofenceMarker;

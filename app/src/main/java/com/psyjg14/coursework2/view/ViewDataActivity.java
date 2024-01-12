@@ -26,8 +26,12 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.R;
+import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityViewDataBinding;
 import com.psyjg14.coursework2.viewmodel.ViewDataViewModel;
+
+import java.util.Calendar;
+import java.util.List;
 
 
 public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -79,9 +83,91 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
 
+        viewDataViewModel.getTimeSelected().observe(this, timeSelected -> {
+            timeOrTypeUpdated(timeSelected, viewDataViewModel.getTypeSelected().getValue());
+        });
 
+        viewDataViewModel.getTypeSelected().observe(this, typeSelected -> {
+            timeOrTypeUpdated(viewDataViewModel.getTimeSelected().getValue(), typeSelected);
+        });
+
+        viewDataViewModel.getLastMovement().observe(this, movementEntity -> {
+            if(movementEntity != null) {
+                viewDataViewModel.setPath(movementEntity.path);
+            }
+        });
 
     }
+
+    public void timeOrTypeUpdated(int timeSelected, int typeSelected){
+        Calendar calendar = Calendar.getInstance();
+        long endTime = System.currentTimeMillis();
+        long startTime;
+        if(timeSelected == R.id.dayButton){
+            calendar.add(Calendar.DAY_OF_YEAR, -1);
+            startTime = calendar.getTimeInMillis();
+        } else if(timeSelected == R.id.weekButton){
+            calendar.add(Calendar.WEEK_OF_YEAR, -1);
+            startTime = calendar.getTimeInMillis();
+        } else if(timeSelected == R.id.monthButton){
+            calendar.add(Calendar.MONTH, -1);
+            startTime = calendar.getTimeInMillis();
+        } else if(timeSelected == R.id.yearButton){
+            calendar.add(Calendar.YEAR, -1);
+            startTime = calendar.getTimeInMillis();
+        } else{
+            startTime = 0;
+        }
+
+        if(typeSelected == R.id.allButton){
+            viewDataViewModel.getMovementsByTime(startTime, endTime).observe(this, movements -> {
+                float distance = 0;
+                long time = 0;
+                if (movements.size() > 0) {
+                    for (MovementEntity movement : movements) {
+                        distance += movement.distanceTravelled;
+                        time += movement.timeTaken;
+                    }
+                }
+                if (viewDataViewModel.getDistanceUnit().equals("metric")) {
+                    viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance / 1000 + " kilometres");
+                } else {
+                    viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance * 0.000621371 + " miles");
+                }
+                long hours = time / 3600;
+                long remainingSeconds = time % 3600;
+                long minutes = remainingSeconds / 60;
+                long seconds = remainingSeconds % 60;
+                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02d:%02d:%02d", hours, minutes, seconds));
+                viewDataViewModel.setNumOfSessions("Number of Sessions: " + movements.size());
+
+            });
+        }else{
+            viewDataViewModel.getMovementsByTimeAndType(viewDataViewModel.getType(typeSelected), startTime, endTime).observe(this, movements -> {
+                float distance = 0;
+                long time = 0;
+                if (movements.size() > 0) {
+                    for (MovementEntity movement : movements) {
+                        distance += movement.distanceTravelled;
+                        time += movement.timeTaken;
+                    }
+                }
+                if (viewDataViewModel.getDistanceUnit().equals("metric")) {
+                    viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance / 1000 + " kilometres");
+                } else {
+                    viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance * 0.000621371 + " miles");
+                }
+                long hours = time / 3600;
+                long remainingSeconds = time % 3600;
+                long minutes = remainingSeconds / 60;
+                long seconds = remainingSeconds % 60;
+                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02d:%02d:%02d", hours, minutes, seconds));
+                viewDataViewModel.setNumOfSessions("Number of Sessions: " + movements.size());
+
+            });
+        }
+    }
+
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {

@@ -1,23 +1,19 @@
 package com.psyjg14.coursework2.viewmodel;
 
-import android.content.Context;
+import android.app.Application;
 import android.util.Log;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-import androidx.room.Room;
 
-import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
-import com.psyjg14.coursework2.view.MainActivity;
+import com.psyjg14.coursework2.model.DatabaseRepository;
 
 import java.util.List;
 
-public class ManageCurrentJourneyViewModel extends ViewModel {
+public class ManageCurrentJourneyViewModel extends AndroidViewModel {
     private int buttonSelected = R.id.walkButton;
 
     private MutableLiveData<Boolean> isTracking = new MutableLiveData<>();
@@ -26,8 +22,14 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
 
     private MutableLiveData<List<MovementEntity>> movements = new MutableLiveData<>();
 
-    public ManageCurrentJourneyViewModel() {
+    private DatabaseRepository databaseRepository;
+    private LiveData<List<MovementEntity>> allMovements;
+
+    public ManageCurrentJourneyViewModel(Application application) {
+        super(application);
         isTracking.setValue(false);
+        databaseRepository = new DatabaseRepository(application);
+        allMovements = databaseRepository.getAllMovements();
     }
 
     public String getName(){
@@ -85,15 +87,8 @@ public class ManageCurrentJourneyViewModel extends ViewModel {
         }
     }
 
-    public LiveData<List<MovementEntity>> getMovementEntities(Context context){
-
-        new Thread(()-> {
-            AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
-            MovementDao movementDao = db.movementDao();
-            List<MovementEntity> newMovements = movementDao.getAllMovements();
-            movements.postValue(newMovements);
-        }).start();
-        return movements;
+    public LiveData<List<MovementEntity>> getMovementEntities(){
+        return allMovements;
     }
 
 

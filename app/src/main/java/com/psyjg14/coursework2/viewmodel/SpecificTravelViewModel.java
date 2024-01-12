@@ -1,17 +1,22 @@
 package com.psyjg14.coursework2.viewmodel;
 
+import android.app.Application;
 import android.util.Log;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.psyjg14.coursework2.R;
+import com.psyjg14.coursework2.database.entities.GeofenceEntity;
+import com.psyjg14.coursework2.database.entities.MovementEntity;
+import com.psyjg14.coursework2.model.DatabaseRepository;
 
 import java.util.List;
 
-public class SpecificTravelViewModel extends ViewModel {
+public class SpecificTravelViewModel extends AndroidViewModel {
     private MutableLiveData<List<LatLng>> path = new MutableLiveData<>();
 
     private MutableLiveData<String> name = new MutableLiveData<>();
@@ -27,10 +32,36 @@ public class SpecificTravelViewModel extends ViewModel {
     private MutableLiveData<Boolean> isCycle = new MutableLiveData<>();
     private String travelType;
 
-    public SpecificTravelViewModel(){
+    private DatabaseRepository databaseRepository;
+    private LiveData<List<MovementEntity>> movements;
+
+    public SpecificTravelViewModel(Application application) {
+        super(application);
+        databaseRepository = new DatabaseRepository(application);
+        movements = databaseRepository.getAllMovements();
         isWalk.setValue(false);
         isRun.setValue(false);
         isCycle.setValue(false);
+    }
+
+    public LiveData<List<MovementEntity>> getAllMovements() {
+        return movements;
+    }
+
+    public void deleteMovement(MovementEntity movementEntity){
+        databaseRepository.deleteMovement(movementEntity);
+    }
+
+    public void updateMovement(MovementEntity movementEntity){
+        databaseRepository.updateMovement(movementEntity);
+    }
+
+    public void insertMovement(MovementEntity movementEntity){
+        databaseRepository.insertMovement(movementEntity);
+    }
+
+    public LiveData<MovementEntity> getMovementById(String name){
+        return databaseRepository.getMovementById(name);
     }
 
 

@@ -3,25 +3,20 @@ package com.psyjg14.coursework2.model;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.room.Room;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.psyjg14.coursework2.DatabaseSingleton;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.GeofenceDao;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
 
 import java.util.List;
@@ -31,10 +26,18 @@ public class GeofenceHelper {
     private final Context context;
     private final GeofencingClient geofencingClient;
     private final Activity activity;
+
+    private DatabaseRepository databaseRepository;
+
+    private List<GeofenceEntity> geofences;
     public GeofenceHelper(Context context, Activity activity) {
         this.context = context;
         this.activity = activity;
         geofencingClient = com.google.android.gms.location.LocationServices.getGeofencingClient(context);
+        databaseRepository = new DatabaseRepository((Application) context.getApplicationContext());
+        databaseRepository.getAllGeofences().observe((LifecycleOwner) activity, geofenceEntities -> {
+            geofences = geofenceEntities;
+        });
     }
 
     private Geofence createGeofence(String geofenceID,LatLng latLng, float radius, int transitionTypes) {
@@ -48,6 +51,12 @@ public class GeofenceHelper {
     }
 
     private String generateRequestId() {
+        String id = UUID.randomUUID().toString();
+            for(GeofenceEntity geofence : geofences){
+                if(geofence.geofenceID.equals(id)){
+                    generateRequestId();
+                }
+            }
         return UUID.randomUUID().toString();
     }
 
@@ -55,7 +64,7 @@ public class GeofenceHelper {
      *  Geofence code
      **************************************************************************/
 
-    public void addGeofence(String name, String classification, LatLng latLng, float radius, String geofenceNote, onGeofenceAddedCallback callback) {
+    public void addGeofence(String name, String classification, LatLng latLng, float radius, String geofenceNote) {
         String geofenceID = generateRequestId();
         Geofence geofence = createGeofence(geofenceID,latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
@@ -78,19 +87,8 @@ public class GeofenceHelper {
                             geofenceEntity.name = name;
                             geofenceEntity.classification = classification;
                             geofenceEntity.geofenceNote = geofenceNote;
-                            new AsyncTask<Void, Void, Void>() {
-                                @Override
-                                protected Void doInBackground(Void... voids) {
-                                    AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
 
-                                    GeofenceDao geofenceDao = db.geofenceDao();
-                                    geofenceDao.insertGeofence(geofenceEntity);
-                                    if (callback != null) {
-                                        callback.onGeofenceAdded();
-                                    }
-                                    return null;
-                                }
-                            }.execute();
+                            databaseRepository.insertGeofence(geofenceEntity);
                         })
                         .addOnFailureListener(activity, e -> Log.d("COMP3018", "onFailure: " + e.getMessage()));
             } else{
@@ -108,55 +106,10 @@ public class GeofenceHelper {
         return pendingIntent;
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public void getGeofences(GetGeofenceCallback callback) {
-        new AsyncTask<Void, Void, List<GeofenceEntity>>() {
-            @Override
-            protected List<GeofenceEntity> doInBackground(Void... voids) {
-                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
-
-                GeofenceDao geofenceDao = db.geofenceDao();
-                return geofenceDao.getAllGeofences();
-            }
-
-            @Override
-            protected void onPostExecute(List<GeofenceEntity> geofences) {
-                super.onPostExecute(geofences);
-                callback.GeofenceCallback(geofences);
-            }
-        }.execute();
-    }
 
     @SuppressLint("StaticFieldLeak")
-    public void removeGeofence(GeofenceEntity geofence, onGeofenceRemovedCallback callback){
-        new AsyncTask<Void, Void, List<GeofenceEntity>>() {
-            @Override
-            protected List<GeofenceEntity> doInBackground(Void... voids) {
-                AppDatabase db = DatabaseSingleton.getDatabaseInstance(context);
-
-                GeofenceDao geofenceDao = db.geofenceDao();
-                geofenceDao.deleteGeofence(geofence);
-                return geofenceDao.getAllGeofences();
-            }
-
-            @Override
-            protected void onPostExecute(List<GeofenceEntity> geofences) {
-                super.onPostExecute(geofences);
-                callback.onGeofenceRemoved(geofences);
-            }
-        }.execute();
-    }
-
-
-    public interface GetGeofenceCallback{
-        void GeofenceCallback(List<GeofenceEntity> geofences);
-    }
-
-    public interface onGeofenceAddedCallback{
-        void onGeofenceAdded();
-    }
-
-    public interface onGeofenceRemovedCallback{
-        void onGeofenceRemoved(List<GeofenceEntity> geofences);
+    public void removeGeofence(GeofenceEntity geofence){
+        DatabaseRepository databaseRepository = new DatabaseRepository((Application) context.getApplicationContext());
+        databaseRepository.deleteGeofence(geofence);
     }
 }

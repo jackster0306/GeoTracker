@@ -7,17 +7,12 @@ import android.widget.RadioGroup;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.room.Room;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.database.AppDatabase;
-import com.psyjg14.coursework2.database.dao.MovementDao;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
-import com.psyjg14.coursework2.view.MainActivity;
+import com.psyjg14.coursework2.model.DatabaseRepository;
 
-import java.util.Calendar;
 import java.util.List;
 
 public class ViewDataViewModel extends AndroidViewModel {
@@ -26,93 +21,76 @@ public class ViewDataViewModel extends AndroidViewModel {
     private MutableLiveData<String> timeTaken = new MutableLiveData<>();
     private MutableLiveData<String> numOfSessions = new MutableLiveData<>();
 
-    private int timeSelected = R.id.allButton;
-    private int typeSelected = R.id.allButton;
-
-    private final MovementDao movementDao;
+    private MutableLiveData<Integer> timeSelectedData = new MutableLiveData<>();
+    private MutableLiveData<Integer> typeSelectedData = new MutableLiveData<>();
+    private MutableLiveData<List<LatLng>> path = new MutableLiveData<>();
 
     private String distanceUnit;
 
+    private DatabaseRepository databaseRepository;
+
     public ViewDataViewModel(Application application) {
         super(application);
-        AppDatabase appDatabase = DatabaseSingleton.getDatabaseInstance(application.getApplicationContext());
-        movementDao = appDatabase.movementDao();
+        databaseRepository = new DatabaseRepository(application);
+        timeSelectedData.setValue(R.id.allButton);
+        typeSelectedData.setValue(R.id.allButton);
+        path.setValue(null);
+    }
+
+    public LiveData<MovementEntity> getLastMovement(){
+        return databaseRepository.getLastMovementEntity();
+    }
+
+    public LiveData<List<MovementEntity>> getMovementsByTime(long startTime, long endTime){
+        return databaseRepository.getMovementEntitiesByTime(startTime, endTime);
+    }
+
+    public LiveData<List<MovementEntity>> getMovementsByTimeAndType(String movementType, long startTime, long endTime){
+        return databaseRepository.getMovementEntitiesByTimeAndType(movementType, startTime, endTime);
+    }
+
+    public MutableLiveData<Integer> getTimeSelected() {
+        return timeSelectedData;
+    }
+
+    public MutableLiveData<Integer> getTypeSelected() {
+        return typeSelectedData;
+    }
+
+    public String getDistanceUnit(){
+        return distanceUnit;
     }
 
     public void onRadioButtonPressed(RadioGroup group, int buttonID){
         Log.d("COMP3018", "Button Pressed: " + buttonID);
         int groupID = group.getId();
         if(groupID == R.id.timeRadioGroup){
-            timeSelected = buttonID;
+            timeSelectedData.setValue(buttonID);
         } else if(groupID == R.id.typeRadioGroup){
-            typeSelected = buttonID;
+            typeSelectedData.setValue(buttonID);
         }
         updateDistanceAndTime();
     }
 
     public void updateDistanceAndTime(){
-        Calendar calendar = Calendar.getInstance();
-        long endTime = System.currentTimeMillis();
-        long startTime;
-        if(timeSelected == R.id.dayButton){
-            calendar.add(Calendar.DAY_OF_YEAR, -1);
-            startTime = calendar.getTimeInMillis();
-        } else if(timeSelected == R.id.weekButton){
-            calendar.add(Calendar.WEEK_OF_YEAR, -1);
-            startTime = calendar.getTimeInMillis();
-        } else if(timeSelected == R.id.monthButton){
-            calendar.add(Calendar.MONTH, -1);
-            startTime = calendar.getTimeInMillis();
-        } else if(timeSelected == R.id.yearButton){
-            calendar.add(Calendar.YEAR, -1);
-            startTime = calendar.getTimeInMillis();
-        } else{
-            startTime = 0;
-        }
-
-        if(typeSelected == R.id.allButton){
-            new Thread(()-> {
-                List<MovementEntity> movements = movementDao.getMovementEntitiesByTime(startTime, endTime);
-                float distance = 0;
-                long time = 0;
-                if(movements.size() > 0){
-                    for(MovementEntity movement : movements){
-                        distance += movement.distanceTravelled;
-                        time += movement.timeTaken;
-                    }
-                }
-                if(distanceUnit.equals("metric")){
-                    distanceTravelled.postValue("Distance Travelled: " + distance/1000 + " kilometres");
-                }
-                else{
-                    distanceTravelled.postValue("Distance Travelled: " + distance*0.000621371 + " miles");
-                }
-//                distanceTravelled.postValue(String.format("Distance Travelled: %.2f", distance/1000) + " kilometres");
-                timeTaken.postValue(String.format("Time Taken: %d", time) + " seconds");
-                numOfSessions.postValue("Number of Sessions: " + movements.size());
-            }).start();
-        }else{
-            new Thread(()-> {
-                List<MovementEntity> movements = movementDao.getMovementEntitiesByTimeAndType(getType(), startTime, endTime);
-                float distance = 0;
-                long time = 0;
-                if(movements.size() > 0){
-                    for(MovementEntity movement : movements){
-                        distance += movement.distanceTravelled;
-                        time += movement.timeTaken;
-                    }
-                }
-                distanceTravelled.postValue(String.format("Distance Travelled: %.2f", distance/1000) + " kilometres");
-                timeTaken.postValue(String.format("Time Taken: %d", time) + " seconds");
-                numOfSessions.postValue("Number of Sessions: " + movements.size());
-            }).start();
-        }
 
 
 
     }
 
-    public String getType(){
+    public void setDistanceTravelled(String distanceTravelledString) {
+        distanceTravelled.setValue(distanceTravelledString);
+    }
+
+    public void setNumOfSessions(String numOfSessionsString) {
+        numOfSessions.setValue(numOfSessionsString);
+    }
+
+    public void setTimeTaken(String timeTakenString) {
+        timeTaken.setValue(timeTakenString);
+    }
+
+    public String getType(int typeSelected){
         if(typeSelected == R.id.walkButton){
             return "walk";
         } else if(typeSelected == R.id.runButton){
@@ -136,14 +114,11 @@ public class ViewDataViewModel extends AndroidViewModel {
         return numOfSessions;
     }
 
+    public void setPath(List<LatLng> newPath){
+        path.setValue(newPath);
+    }
+
     public LiveData<List<LatLng>> getPath(){
-        MutableLiveData<List<LatLng>> path = new MutableLiveData<>();
-        new Thread(() -> {
-            MovementEntity entity = movementDao.getLastEntity();
-            if(entity != null){
-                path.postValue(entity.path);
-            }
-        }).start();
         return path;
     }
 

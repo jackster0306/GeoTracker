@@ -7,7 +7,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 
 import android.Manifest;
 import android.content.ComponentName;
@@ -25,13 +24,13 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.DatabaseSingleton;
 import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityManageCurrentJourneyBinding;
+import com.psyjg14.coursework2.model.DatabaseRepository;
 import com.psyjg14.coursework2.model.LocationService;
 import com.psyjg14.coursework2.viewmodel.ManageCurrentJourneyViewModel;
 
@@ -93,7 +92,8 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
             String locationPriority = preferences.getString(getString(R.string.pref_location_accuracy_key), "");
             String updatePeriods = preferences.getString(getString(R.string.pref_update_periods_key), "");
-            locationService.setupLocation(locationPriority, updatePeriods);
+            String trackingType = preferences.getString(getString(R.string.pref_tracking_key), "");
+            locationService.setupLocation(locationPriority, updatePeriods, trackingType);
             manageCurrentJourneyViewModel.setIsTracking(true);
             locationService.startTracking(manageCurrentJourneyViewModel.getType());
             startService(new Intent(this, LocationService.class));
@@ -105,7 +105,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
         if(binding.nameEditText.getText().toString().equals("")){
             Toast.makeText(ManageCurrentJourney.this, "Please enter a name for your journey", Toast.LENGTH_SHORT).show();
         } else {
-            manageCurrentJourneyViewModel.getMovementEntities(this).observe(this, movements -> {
+            manageCurrentJourneyViewModel.getMovementEntities().observe(this, movements -> {
                 boolean nameExists = false;
                 for(MovementEntity movement : movements){
                     if(movement.movementName.equals(binding.nameEditText.getText().toString())){
@@ -158,11 +158,8 @@ public class ManageCurrentJourney extends AppCompatActivity {
                     movementEntity.timeTaken = endTime - startTime;
                     movementEntity.path = path;
                     locationService.stopSelf();
-                    new Thread(() -> {
-                        AppDatabase db = DatabaseSingleton.getDatabaseInstance(ManageCurrentJourney.this);
-
-                        db.movementDao().insertMovement(movementEntity);
-                    }).start();
+                    DatabaseRepository databaseRepository = new DatabaseRepository(getApplication());
+                    databaseRepository.insertMovement(movementEntity);
                 }
             });
         }
