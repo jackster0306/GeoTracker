@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.LiveData;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -26,7 +28,11 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.model.LatLng;
+import com.psyjg14.coursework2.MyTypeConverters;
 import com.psyjg14.coursework2.R;
+import com.psyjg14.coursework2.database.entities.MovementEntity;
+import com.psyjg14.coursework2.view.MainActivity;
+import com.psyjg14.coursework2.view.ManageCurrentJourney;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +70,10 @@ public class LocationService extends Service {
 
     private boolean trackWhenClosed = true;
 
+    private DatabaseRepository databaseRepository;
+
+    private String name;
+
     public interface MyLocationCallback {
         void onLocationChanged(Location location);
 
@@ -94,6 +104,7 @@ public class LocationService extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate: LocationService");
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        databaseRepository = new DatabaseRepository(getApplication());
         initLocationCallback();
         createNotificationChannel();
     }
@@ -116,9 +127,29 @@ public class LocationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "*************************onStartCommand: LocationService*************************");
+        if(intent != null){
+            if(intent.getAction() != null){
+                if(intent.getAction().equals("stop")){
+                    Log.d(TAG, "onStartCommand: STOP, name: "+name);
+                    isUpdating = false;
+                    fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+                    endTime = System.currentTimeMillis();
+                    MovementEntity movementEntity = new MovementEntity();
+                    movementEntity.movementName = MyTypeConverters.nameToDatabaseName(name);
+                    movementEntity.movementType = type.toLowerCase();
+                    movementEntity.distanceTravelled = distanceTravelled;
+                    movementEntity.timeStamp = endTime;
+                    movementEntity.timeTaken = endTime - startTime;
+                    movementEntity.path = path;
+                    movementEntity.note = "Journey was stopped through a notification";
+                    databaseRepository.insertMovement(movementEntity);
+                    stopForeground(true);
+                    stopSelf();
+                }
+            }
+        }
 
         startLocationUpdates(createLocationRequest());
-
 
         return START_STICKY;
     }
@@ -163,6 +194,7 @@ public class LocationService extends Service {
 
     public LocationRequest createLocationRequest() {
         Log.d(TAG, "createLocationRequest: LocationService");
+        Log.d(TAG, "Location Priority: " + locationPriority + " Update Distance: " + updateDistance);
         return new LocationRequest.Builder(0)
                 .setPriority(locationPriority)
                 .setMinUpdateDistanceMeters(updateDistance)
@@ -170,10 +202,14 @@ public class LocationService extends Service {
     }
 
     public void startTracking(String type){
+        Intent notificationIntent = new Intent(this, ManageCurrentJourney.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
         notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Tracking Journey")
                 .setContentText("Tracking your current " + type)
                 .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_launcher_background, "Stop Tracking", getStopServicePendingIntent())
                 .build();
         startForeground(NOTIFICATION_ID, notification);
         Log.d(TAG, "startTracking: LocationService");
@@ -181,6 +217,12 @@ public class LocationService extends Service {
         isUpdating = true;
         this.type = type;
         //startTime = System.currentTimeMillis();
+    }
+
+    private PendingIntent getStopServicePendingIntent(){
+        Intent intent = new Intent(this, LocationService.class);
+        intent.setAction("stop");
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_MUTABLE);
     }
 
     private void updateData(Location newLocation) {
@@ -235,9 +277,22 @@ public class LocationService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         Log.d(TAG, "onTaskRemoved: LocationService");
         if(!trackWhenClosed){
-            //Do database stuff here
+            MovementEntity movementEntity = new MovementEntity();
+            movementEntity.movementName = MyTypeConverters.nameToDatabaseName(name);
+            movementEntity.movementType = type.toLowerCase();
+            movementEntity.distanceTravelled = distanceTravelled;
+            movementEntity.timeStamp = endTime;
+            movementEntity.timeTaken = endTime - startTime;
+            movementEntity.path = path;
+            movementEntity.note = "Journey was stopped when the app was closed";
+            databaseRepository.insertMovement(movementEntity);
             stopLocationUpdates();
+            stopSelf();
             super.onTaskRemoved(rootIntent);
         }
+    }
+
+    public void setName(String newName){
+        name = newName;
     }
 }

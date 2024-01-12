@@ -134,11 +134,12 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
                 } else {
                     viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance * 0.000621371 + " miles");
                 }
-                long hours = time / 3600;
-                long remainingSeconds = time % 3600;
+                long totalseconds = time/1000;
+                long hours = totalseconds / 3600;
+                long remainingSeconds = totalseconds % 3600;
                 long minutes = remainingSeconds / 60;
                 long seconds = remainingSeconds % 60;
-                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02d:%02d:%02d", hours, minutes, seconds));
+                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02dh %02dm %02ds", hours, minutes, seconds));
                 viewDataViewModel.setNumOfSessions("Number of Sessions: " + movements.size());
 
             });
@@ -157,11 +158,12 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
                 } else {
                     viewDataViewModel.setDistanceTravelled("Distance Travelled: " + distance * 0.000621371 + " miles");
                 }
-                long hours = time / 3600;
-                long remainingSeconds = time % 3600;
+                long totalseconds = time/1000;
+                long hours = totalseconds / 3600;
+                long remainingSeconds = totalseconds % 3600;
                 long minutes = remainingSeconds / 60;
                 long seconds = remainingSeconds % 60;
-                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02d:%02d:%02d", hours, minutes, seconds));
+                viewDataViewModel.setTimeTaken(String.format("Time Taken: %02dh %02dm %02ds", hours, minutes, seconds));
                 viewDataViewModel.setNumOfSessions("Number of Sessions: " + movements.size());
 
             });
@@ -173,6 +175,9 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
         viewDataViewModel.getPath().observe(this, path -> {
+            if(path == null){
+                return;
+            }
             if(path.size()>1){
                 PolylineOptions polylineOptions = new PolylineOptions()
                         .addAll(path)

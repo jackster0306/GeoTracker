@@ -21,13 +21,14 @@ import com.psyjg14.coursework2.databinding.ActivityViewAllTravelsBinding;
 import com.psyjg14.coursework2.model.TravelDataItem;
 import com.psyjg14.coursework2.viewmodel.ViewAllTravelsViewModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ViewAllTravelsActivity extends AppCompatActivity {
     private ViewAllTravelsViewModel viewAllTravelsViewModel;
-
-    ActivityResultLauncher<Intent> activityResultLauncher;
 
 
     @Override
@@ -41,14 +42,14 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         binding.setViewModel(viewAllTravelsViewModel);
         binding.setLifecycleOwner(this);
 
-        Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: ");
-        viewAllTravelsViewModel.getAllMovements().observe(this, movementEntities -> {
-            List<TravelDataItem> list = new ArrayList<>();
-            for(MovementEntity entity : movementEntities){
-                list.add(new TravelDataItem(MyTypeConverters.nameFromDatabaseName(entity.movementName), entity.movementType, entity.timeStamp));
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBack();
             }
-            viewAllTravelsViewModel.getMovementList().setValue(list);
-        });
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
 
         RecyclerView recyclerView = binding.recyclerView;
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -56,14 +57,38 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         TravelDataItemAdapter adapter = new TravelDataItemAdapter(viewAllTravelsViewModel.getMovementList(), this);
         recyclerView.setAdapter(adapter);
 
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-
-                onBack();
+        Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: ");
+        viewAllTravelsViewModel.getAllMovements().observe(this, movementEntities -> {
+            if(movementEntities != null){
+                viewAllTravelsViewModel.getMovementList().getValue().clear();
+                List<TravelDataItem> list = new ArrayList<>();
+                for(MovementEntity entity : movementEntities){
+                    Date date = new Date(entity.timeStamp);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss", Locale.UK);
+                    String dateCompleted = "Date Completed: "+ dateFormat.format(date);
+                    String traveltype = entity.movementType;
+                    if(entity.movementType.equals("walk")){
+                        traveltype = "Travel Type: Walk";
+                    } else if(entity.movementType.equals("run")){
+                        traveltype = "Travel Type: Run";
+                    } else if(entity.movementType.equals("cycle")){
+                        traveltype = "Travel Type: Cycle";
+                    }
+                    TravelDataItem travelDataItem = new TravelDataItem(MyTypeConverters.nameFromDatabaseName(entity.movementName), traveltype, dateCompleted);
+                    list.add(travelDataItem);
+                    Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: " + travelDataItem.getName() + ", " + travelDataItem.getTravelType() + ", " + travelDataItem.getDateCompleted());
+                }
+                Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: " + list);
+                viewAllTravelsViewModel.getMovementList().setValue(list);
             }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+        });
+
+        viewAllTravelsViewModel.getMovementList().observe(this, travelDataItems -> {
+            if(travelDataItems != null){
+                adapter.notifyDataSetChanged();
+            }
+        });
+
     }
 
     public void onShowMapPressed(View view) {

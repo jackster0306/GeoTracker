@@ -25,6 +25,9 @@ public class SpecificTravelViewModel extends AndroidViewModel {
     private MutableLiveData<String> travelTypeText = new MutableLiveData<>();
     private MutableLiveData<String> completionTimeText = new MutableLiveData<>();
 
+    private MutableLiveData<String> noteText = new MutableLiveData<>();
+
+    private String note;
     private String distanceUnit;
 
     private MutableLiveData<Boolean> isWalk = new MutableLiveData<>();
@@ -33,19 +36,19 @@ public class SpecificTravelViewModel extends AndroidViewModel {
     private String travelType;
 
     private DatabaseRepository databaseRepository;
-    private LiveData<List<MovementEntity>> movements;
+
+
 
     public SpecificTravelViewModel(Application application) {
         super(application);
         databaseRepository = new DatabaseRepository(application);
-        movements = databaseRepository.getAllMovements();
         isWalk.setValue(false);
         isRun.setValue(false);
         isCycle.setValue(false);
     }
 
     public LiveData<List<MovementEntity>> getAllMovements() {
-        return movements;
+        return databaseRepository.getAllMovements();
     }
 
     public void deleteMovement(MovementEntity movementEntity){
@@ -118,14 +121,15 @@ public class SpecificTravelViewModel extends AndroidViewModel {
     }
 
     public void setTimeTaken(double timeTaken){
-        timeTakenText.postValue("Time Taken: " + timeTaken + " seconds");
+        long totalseconds = (long) (timeTaken/1000);
+        long hours = totalseconds / 3600;
+        long remainingSeconds = totalseconds % 3600;
+        long minutes = remainingSeconds / 60;
+        long seconds = remainingSeconds % 60;
+        timeTakenText.postValue(String.format("Time Taken: %02dh %02dm %02ds", hours, minutes, seconds));
     }
     public MutableLiveData<String> getTimeTaken() {
         return timeTakenText;
-    }
-
-    public void setTravelTypeText(String type){
-        travelTypeText.postValue("Travel Type: " + type);
     }
 
     public MutableLiveData<String> getTravelTypeText() {
@@ -136,22 +140,9 @@ public class SpecificTravelViewModel extends AndroidViewModel {
     public void setCompletionTime(long time){
         completionTimeText.postValue("Completion Time: " + time);
     }
-    public MutableLiveData<String> getCompletionTime() {
-        return completionTimeText;
-    }
 
     public void setChecked(){
         Log.d("COMP3018", "setChecked: " + travelTypeText.getValue());
-//        if(travelTypeText.getValue().equals("Travel Type: walk")){
-//            Log.d("COMP3018", "setChecked: walk");
-//            isWalk.setValue(true);
-//        } else if(travelTypeText.getValue().equals("Travel Type: run")){
-//            Log.d("COMP3018", "setChecked: run");
-//            isRun.setValue(true);
-//        } else if(travelTypeText.getValue().equals("Travel Type: cycle")){
-//            Log.d("COMP3018", "setChecked: cycle");
-//            isCycle.setValue(true);
-//        }
         if(travelType.equals("walk")){
             isWalk.setValue(true);
             isRun.setValue(false);
@@ -189,5 +180,33 @@ public class SpecificTravelViewModel extends AndroidViewModel {
 
     public void setTravelType(String travelType) {
         this.travelType = travelType;
+    }
+
+    public void setTravelTypeText(String text){
+        if(text.equals("walk")){
+            travelTypeText.postValue("Travel Type: Walk");
+        } else if(text.equals("run")){
+            travelTypeText.postValue("Travel Type: Run");
+        } else if(text.equals("cycle")){
+            travelTypeText.postValue("Travel Type: Cycle");
+        } else{
+            travelTypeText.postValue("Travel Type: " + text);
+        }
+    }
+
+    public String getNote(){
+        return note;
+    }
+
+    public void setNote(String newNote){
+        note = newNote;
+    }
+
+    public void setNoteText(String note){
+        noteText.postValue("Note: "+note);
+    }
+
+    public MutableLiveData<String> getNoteText(){
+        return noteText;
     }
 }

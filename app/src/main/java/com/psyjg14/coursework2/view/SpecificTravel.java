@@ -4,6 +4,8 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
@@ -80,6 +82,8 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
                 specificTravelViewModel.setCompletionTime(movementEntity.timeStamp);
                 specificTravelViewModel.setPath(movementEntity.path);
                 specificTravelViewModel.setTravelType(movementEntity.movementType);
+                specificTravelViewModel.setNoteText(movementEntity.note);
+                specificTravelViewModel.setNote(movementEntity.note);
             }
         });
 
@@ -115,8 +119,6 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
     }
 
     public void onBackArrowPressed(View v){
-        Intent intent = new Intent();
-        setResult(Activity.RESULT_OK, intent);
         finish();
     }
 
@@ -187,48 +189,64 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
 
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> specificTravelViewModel.onRadioButtonPressed(checkedId));
 
+        EditText noteInput = dialogView.findViewById(R.id.editTextNote);
+        noteInput.setText(specificTravelViewModel.getNote());
+
 
         builder.setPositiveButton("Save", (dialog, which) -> {
             String newName = nameInput.getText().toString();
-            //int selectedRadioButtonId = radioGroup.getCheckedRadioButtonId();
-            //String selectedRadioButtonText = ((RadioButton) dialogView.findViewById(selectedRadioButtonId)).getText().toString();
+            String newNote = noteInput.getText().toString();
             if(newName.equals("")){
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
             } else {
                     if(newName.equals(specificTravelViewModel.getName().getValue())){
-                        specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
+                        Log.d("COMP3018", "onEditJourneyPressed: name not changed");
+                        LiveData<MovementEntity> movementEntityLiveData =specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
+                        movementEntityLiveData.observe(this, movementEntity -> {
                             if(movementEntity != null){
                                 movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
+                                movementEntity.note = newNote;
                                 specificTravelViewModel.updateMovement(movementEntity);
-                                Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SpecificTravel.this, "Journey Edited", Toast.LENGTH_SHORT).show();
                                 specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                                specificTravelViewModel.setNoteText(newNote);
+                                specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).removeObservers(SpecificTravel.this);
+                                movementEntityLiveData.removeObservers(SpecificTravel.this);
                             }
                         });
                     } else{
-                        List<MovementEntity> movements = specificTravelViewModel.getAllMovements().getValue();
-                        boolean nameExists = false;
-                        for(MovementEntity movement : movements){
-                            if(movement.movementName.equals(newName)){
-                                nameExists = true;
-                            }
-                        }
-                        if(nameExists){
-                            Toast.makeText(this, "Name already exists, cancelling edit", Toast.LENGTH_SHORT).show();
-                            dialog.cancel();
-                        } else{
-                            specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue()))).observe(this, movementEntity -> {
-                                if(movementEntity != null){
-                                    specificTravelViewModel.deleteMovement(movementEntity);
-                                    movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
-                                    movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
-                                    specificTravelViewModel.insertMovement(movementEntity);
-                                    Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
-                                    specificTravelViewModel.setName(newName);
-                                    specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                        LiveData<List<MovementEntity>> movementEntityLiveData = specificTravelViewModel.getAllMovements();
+                        movementEntityLiveData.observe(this, movementEntities -> {
+                            if(movementEntities != null){
+                                boolean nameExists = false;
+                                for(MovementEntity movement : movementEntities){
+                                    if(movement.movementName.equals(newName)){
+                                        nameExists = true;
+                                    }
                                 }
-                            });
-                        }
+                                if(nameExists){
+                                    Toast.makeText(this, "Name already exists, cancelling edit", Toast.LENGTH_SHORT).show();
+                                    movementEntityLiveData.removeObservers(SpecificTravel.this);
+                                    dialog.cancel();
+                                } else{
+                                    LiveData<MovementEntity> movementEntityLive =specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
+                                    movementEntityLive.observe(this, movementEntity -> {
+                                        if(movementEntity != null){
+                                            movementEntity.movementName = MyTypeConverters.nameToDatabaseName(newName);
+                                            movementEntity.movementType = specificTravelViewModel.getTravelType().toLowerCase();
+                                            Toast.makeText(this, "Journey Edited", Toast.LENGTH_SHORT).show();
+                                            specificTravelViewModel.setName(newName);
+                                            specificTravelViewModel.setTravelTypeText(specificTravelViewModel.getTravelType());
+                                            specificTravelViewModel.updateMovement(movementEntity);
+                                            movementEntityLiveData.removeObservers(SpecificTravel.this);
+                                        }
+                                    });
+                                }
+
+                            }
+                        });
                     }
+                    dialog.cancel();
             }
         });
 

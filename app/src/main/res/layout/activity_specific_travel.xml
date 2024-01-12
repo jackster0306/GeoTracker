@@ -77,6 +77,15 @@
                 android:layout_marginTop="10dp"
                 android:text="@{viewModel.travelTypeText}" />
 
+
+
+            <TextView
+                android:id="@+id/textJourneyNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@{viewModel.noteText}" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -91,7 +100,7 @@
                     android:layout_weight="1"
                     android:text="@string/edit_journey_string"
                     android:onClick="onEditJourneyPressed"
-                    android:layout_marginEnd="5dp"/>
+                    android:layout_marginEnd="5dp" />
 
                 <Button
                     android:id="@+id/deleteJourneyButton"
@@ -100,7 +109,7 @@
                     android:layout_weight="1"
                     android:text="@string/delete_journey_string"
                     android:onClick="onDeleteJourneyPressed"
-                    android:layout_marginStart="5dp"/>
+                    android:layout_marginStart="5dp" />
             </LinearLayout>
 
             <FrameLayout

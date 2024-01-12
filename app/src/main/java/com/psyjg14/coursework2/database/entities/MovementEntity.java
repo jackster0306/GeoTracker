@@ -14,7 +14,10 @@ import java.util.List;
 @Entity(tableName = "movemententity")
 public class MovementEntity {
     @NonNull
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+
+
     public String movementName;
 
     public List<LatLng> path;
@@ -26,6 +29,8 @@ public class MovementEntity {
     public String movementType;
 
     public long timeStamp;
+
+    public String note;
 
     public static MovementEntity fromContentValues(ContentValues values){
         MovementEntity movementEntity = new MovementEntity();

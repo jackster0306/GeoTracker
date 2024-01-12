@@ -31,6 +31,14 @@
             android:inputType="text"
             android:layout_marginBottom="8dp" />
 
+        <EditText
+            android:id="@+id/editTextNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enter_note_string"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="8dp" />
+
         <RadioGroup
             android:id="@+id/radioGroup"
             android:layout_width="wrap_content"

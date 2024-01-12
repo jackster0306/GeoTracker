@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
@@ -71,6 +72,27 @@ public class ManageCurrentJourney extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
+
+        manageCurrentJourneyViewModel.getMovementEntities().observe(this, movements -> {
+            manageCurrentJourneyViewModel.setDefaultName(createNewName(movements));
+        });
+    }
+
+    private String createNewName(List<MovementEntity> movements){
+        String newName;
+        if(movements.size() > 0){
+            newName = "Journey " + (movements.size()+1);
+        }
+        else{
+            newName = "Journey 1";
+        }
+        for(MovementEntity movement : movements){
+            if(movement.movementName.equals(newName)){
+                createNewName(movements);
+            }
+        }
+        Log.d("COMP3018", "createNewName: " + newName);
+        return newName;
     }
 
     @Override
@@ -84,6 +106,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
     }
 
 
+
     public void onStartPressed(View v){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
@@ -93,6 +116,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
             String locationPriority = preferences.getString(getString(R.string.pref_location_accuracy_key), "");
             String updatePeriods = preferences.getString(getString(R.string.pref_update_periods_key), "");
             String trackingType = preferences.getString(getString(R.string.pref_tracking_key), "");
+            locationService.setName(manageCurrentJourneyViewModel.getDefaultName());
             locationService.setupLocation(locationPriority, updatePeriods, trackingType);
             manageCurrentJourneyViewModel.setIsTracking(true);
             locationService.startTracking(manageCurrentJourneyViewModel.getType());
@@ -105,22 +129,33 @@ public class ManageCurrentJourney extends AppCompatActivity {
         if(binding.nameEditText.getText().toString().equals("")){
             Toast.makeText(ManageCurrentJourney.this, "Please enter a name for your journey", Toast.LENGTH_SHORT).show();
         } else {
-            manageCurrentJourneyViewModel.getMovementEntities().observe(this, movements -> {
-                boolean nameExists = false;
-                for(MovementEntity movement : movements){
-                    if(movement.movementName.equals(binding.nameEditText.getText().toString())){
-                        Log.d("COMP3018", "NAME EXISTS: " + movement.movementName + ", " + binding.nameEditText.getText().toString());
-                        nameExists = true;
+            LiveData<List<MovementEntity>> movementEntities = manageCurrentJourneyViewModel.getMovementEntities();
+            movementEntities.observe(this, movements -> {
+                if(movements != null){
+                    boolean nameExists = false;
+                    for(MovementEntity movement : movements){
+                        if(movement.movementName.equals(binding.nameEditText.getText().toString())){
+                            Log.d("COMP3018", "NAME EXISTS: " + movement.movementName + ", " + binding.nameEditText.getText().toString());
+                            nameExists = true;
+                        }
                     }
-                }
 
-                if(nameExists){
-                    Toast.makeText(ManageCurrentJourney.this, "Name already exists, please choose another name", Toast.LENGTH_SHORT).show();
-                    binding.nameEditText.setText("");
-                } else{
-                    manageCurrentJourneyViewModel.setName(binding.nameEditText.getText().toString());
-                    manageCurrentJourneyViewModel.setIsTracking(false);
-                    locationService.stopLocationUpdates();
+                    if(nameExists){
+                        Toast.makeText(ManageCurrentJourney.this, "Name already exists, please choose another name", Toast.LENGTH_SHORT).show();
+                        binding.nameEditText.setText("");
+                        //onStopPressed(v);
+                        movementEntities.removeObservers(this);
+
+                    } else{
+                        manageCurrentJourneyViewModel.setName(binding.nameEditText.getText().toString());
+                        manageCurrentJourneyViewModel.setNote(binding.noteEditText.getText().toString());
+                        manageCurrentJourneyViewModel.setIsTracking(false);
+                        locationService.stopLocationUpdates();
+                        Toast.makeText(ManageCurrentJourney.this, "Journey Saved", Toast.LENGTH_SHORT).show();
+                        binding.nameEditText.setText("");
+                        binding.noteEditText.setText("");
+                        movementEntities.removeObservers(this);
+                    }
                 }
             });
 
@@ -157,6 +192,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
                     movementEntity.timeStamp = endTime;
                     movementEntity.timeTaken = endTime - startTime;
                     movementEntity.path = path;
+                    movementEntity.note = manageCurrentJourneyViewModel.getNote();
                     locationService.stopSelf();
                     DatabaseRepository databaseRepository = new DatabaseRepository(getApplication());
                     databaseRepository.insertMovement(movementEntity);
@@ -211,6 +247,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
             outState.putBoolean("isTracking", true);
             outState.putString("name", manageCurrentJourneyViewModel.getName());
             outState.putString("type", manageCurrentJourneyViewModel.getType());
+            outState.putString("note", manageCurrentJourneyViewModel.getNote());
         } else{
             outState.putBoolean("isTracking", false);
         }
@@ -226,6 +263,7 @@ public class ManageCurrentJourney extends AppCompatActivity {
             manageCurrentJourneyViewModel.setIsTracking(true);
             manageCurrentJourneyViewModel.setName(savedInstanceState.getString("name"));
             manageCurrentJourneyViewModel.setType(Objects.requireNonNull(savedInstanceState.getString("type")));
+            manageCurrentJourneyViewModel.setNote(savedInstanceState.getString("note"));
         } else{
             manageCurrentJourneyViewModel.setIsTracking(false);
         }

@@ -24,6 +24,8 @@ public class ManageCurrentJourneyViewModel extends AndroidViewModel {
 
     private DatabaseRepository databaseRepository;
     private LiveData<List<MovementEntity>> allMovements;
+    String defaultName = "Journey";
+    private String note = "";
 
     public ManageCurrentJourneyViewModel(Application application) {
         super(application);
@@ -89,6 +91,22 @@ public class ManageCurrentJourneyViewModel extends AndroidViewModel {
 
     public LiveData<List<MovementEntity>> getMovementEntities(){
         return allMovements;
+    }
+
+    public void setDefaultName(String newName){
+        defaultName = newName;
+    }
+
+    public String getDefaultName(){
+        return defaultName;
+    }
+
+    public String getNote(){
+        return note;
+    }
+
+    public void setNote(String newNote){
+        note = newNote;
     }
 
 

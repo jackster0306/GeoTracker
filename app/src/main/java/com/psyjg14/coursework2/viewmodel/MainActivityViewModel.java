@@ -38,6 +38,10 @@ public class MainActivityViewModel extends AndroidViewModel {
             addingGeofence.setValue(false);
         }
 
+        public void updateGeofence(GeofenceEntity geofenceEntity) {
+            databaseRepository.updateGeofence(geofenceEntity);
+        }
+
         public LiveData<List<GeofenceEntity>> getAllGeofences() {
             return geofencesLiveData;
         }

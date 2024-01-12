@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Close Button -->
         <ImageView
             android:id="@+id/closeDialogButton"
             android:layout_width="wrap_content"
@@ -20,6 +21,7 @@
             android:background="?android:selectableItemBackground"
             android:contentDescription="@string/close_dialog_string"/>
 
+        <!-- Geofence Name -->
         <TextView
             android:id="@+id/geofenceNameTextView"
             android:layout_width="match_parent"
@@ -31,6 +33,7 @@
             android:padding="16dp"
             android:text="@{geofence.name}" />
 
+        <!-- Geofence Classification -->
         <TextView
             android:id="@+id/geofenceClassificationTextView"
             android:layout_width="match_parent"
@@ -42,15 +45,38 @@
             android:paddingBottom="16dp"
             android:text="@{geofence.classification}" />
 
-        <Button
-            android:id="@+id/deleteGeofenceButton"
+        <!-- Linear Layout for Buttons -->
+        <LinearLayout
+            android:id="@+id/buttonLinearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/geofenceNoteTextView"
-            android:text="@string/delete_geofence_string"
-            android:textColor="@android:color/white"
-            android:layout_margin="16dp" />
+            android:orientation="horizontal"
+            android:layout_below="@id/geofenceNoteTextView">
 
+            <Button
+                android:id="@+id/deleteGeofenceButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="8dp"
+                android:text="@string/delete_geofence_string"
+                android:textColor="@android:color/white" />
+
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="0dp"></Space>
+
+            <Button
+                android:id="@+id/editGeofenceButton"
+                android:layout_margin="8dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/edit_geofence_string"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+        <!-- Geofence Note -->
         <TextView
             android:id="@+id/geofenceNoteTextView"
             android:layout_width="match_parent"

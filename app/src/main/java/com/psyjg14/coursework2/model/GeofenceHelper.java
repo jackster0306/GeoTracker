@@ -64,7 +64,7 @@ public class GeofenceHelper {
      *  Geofence code
      **************************************************************************/
 
-    public void addGeofence(String name, String classification, LatLng latLng, float radius, String geofenceNote) {
+    public void addNewGeofence(String name, String classification, LatLng latLng, float radius, String geofenceNote) {
         String geofenceID = generateRequestId();
         Geofence geofence = createGeofence(geofenceID,latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
@@ -97,6 +97,27 @@ public class GeofenceHelper {
 
         }
 
+    }
+
+    public void addGeofence(String geofenceID, LatLng latLng, float radius){
+        Geofence geofence = createGeofence(geofenceID,latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+        GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
+                .addGeofence(geofence)
+                .build();
+        PendingIntent pendingIntent = getGeofencePendingIntent();
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                        .addOnSuccessListener(activity, aVoid -> {
+                            Log.d("COMP3018", "onSuccess: Geofence Added...");
+                            Log.d("COMP3018", "onSuccess: Adding circle");
+                        })
+                        .addOnFailureListener(activity, e -> Log.d("COMP3018", "onFailure: " + e.getMessage()));
+            } else{
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
+            }
+
+        }
     }
 
     private PendingIntent getGeofencePendingIntent() {
