@@ -24,17 +24,26 @@ import com.psyjg14.coursework2.view.MainActivity;
 
 import java.util.Objects;
 
+/**
+ * The GeofenceBroadcastReceiver class handles geofence transition events.
+ * It receives geofencing events and responds accordingly by showing notifications.
+ * The notifications are displayed when the device enters a geofence and are removed when it exits.
+ */
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     private static final String TAG = "COMP3018";
     private static final String CHANNEL_ID = "Geofence Channel";
 
+    /**
+     * This method is called when a geofence transition event is received.
+     * It handles entering and exiting geofences by showing notifications by starting/stopping the GeofenceNotificationService.
+     *
+     * @param context The application context.
+     * @param intent  The intent containing the geofence transition event.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(TAG, "****************************88onReceive: GeofenceBroadcastReceiver");
-
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
-        // Add a null check to handle potential null geofencingEvent
         if (geofencingEvent == null) {
             Log.e(TAG, "onReceive: GeofencingEvent is null");
             return;
@@ -48,14 +57,12 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         int transition = geofencingEvent.getGeofenceTransition();
 
         if (transition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Log.e(TAG, "onReceive: ENTER");
             DatabaseRepository databaseRepository = new DatabaseRepository((Application) context.getApplicationContext());
             LiveData<GeofenceEntity> liveData = databaseRepository.getGeofenceByID(Objects.requireNonNull(Objects.requireNonNull(geofencingEvent.getTriggeringGeofences()).get(0)).getRequestId());
             liveData.observeForever(new Observer<GeofenceEntity>() {
                 @Override
                 public void onChanged(GeofenceEntity geofenceEntity) {
-                    Log.d(TAG, "onReceive, GEOFENCE ENTITY: " + geofenceEntity);
-                    if(geofenceEntity != null){
+                    if (geofenceEntity != null) {
                         String geofenceName = geofenceEntity.name;
                         String geofenceClassification = geofenceEntity.classification;
                         String geofenceNote = geofenceEntity.geofenceNote;
@@ -67,17 +74,23 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 }
             });
 
-            Log.d(TAG, "onReceive: ENTER");
         } else if (transition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            Log.d(TAG, "onReceive: EXIT");
             context.stopService(new Intent(context, GeofenceNotificationService.class));
         } else {
-            Log.d(TAG, "onReceive: transition: " + transition);
+            Log.e(TAG, "onReceive: Invalid transition type");
         }
     }
 
-    private void handleStartForegroundNotification(Context context, String geofenceName, String geofenceClassification, String geofenceNote){
-        Log.d(TAG, "handleStartForegroundNotification: " + geofenceName + " " + geofenceClassification + " " + geofenceNote);
+    /**
+     * Helper method to handle the creation of a foreground notification.
+     * It creates a notification channel, builds a notification, and starts the GeofenceNotificationService.
+     *
+     * @param context              The application context.
+     * @param geofenceName         The name of the geofence.
+     * @param geofenceClassification The classification of the geofence.
+     * @param geofenceNote         The note associated with the geofence.
+     */
+    private void handleStartForegroundNotification(Context context, String geofenceName, String geofenceClassification, String geofenceNote) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -98,7 +111,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         Intent serviceIntent = new Intent(context, GeofenceNotificationService.class);
         serviceIntent.putExtra("notification", notification);
-        Log.d(TAG, "STARTING SERVICE");
         context.startService(serviceIntent);
     }
 }

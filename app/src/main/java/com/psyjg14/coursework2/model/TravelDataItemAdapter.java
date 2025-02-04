@@ -1,4 +1,4 @@
-package com.psyjg14.coursework2;
+package com.psyjg14.coursework2.model;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -9,8 +9,8 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.TravelDataItemLayoutBinding;
-import com.psyjg14.coursework2.model.TravelDataItem;
 
 import java.util.List;
 
@@ -19,9 +19,6 @@ import java.util.List;
  */
 public class TravelDataItemAdapter extends RecyclerView.Adapter<TravelDataItemAdapter.TravelDataItemViewHolder> {
 
-    /**
-     * LiveData containing the list of TravelDataItems to be displayed.
-     */
     private LiveData<List<TravelDataItem>> travelDataItemList;
 
     /**
@@ -33,7 +30,6 @@ public class TravelDataItemAdapter extends RecyclerView.Adapter<TravelDataItemAd
     public TravelDataItemAdapter(LiveData<List<TravelDataItem>> travelDataItemList, LifecycleOwner lifecycleOwner) {
         this.travelDataItemList = travelDataItemList;
 
-        // Observe changes in the LiveData and trigger notifyDataSetChanged when data changes.
         travelDataItemList.observe(lifecycleOwner, travelDataItems -> notifyDataSetChanged());
     }
 
@@ -62,7 +58,6 @@ public class TravelDataItemAdapter extends RecyclerView.Adapter<TravelDataItemAd
     public void onBindViewHolder(@NonNull TravelDataItemViewHolder holder, int position) {
         List<TravelDataItem> travelDataItems = travelDataItemList.getValue();
 
-        // Check if the list is not null and position is within bounds.
         if (travelDataItems != null && position < travelDataItems.size()) {
             TravelDataItem travelDataItem = travelDataItems.get(position);
             holder.bind(travelDataItem);

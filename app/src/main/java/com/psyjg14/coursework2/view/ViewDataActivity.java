@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,21 +23,28 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.NavBarManager;
+import com.psyjg14.coursework2.model.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityViewDataBinding;
 import com.psyjg14.coursework2.viewmodel.ViewDataViewModel;
 
 import java.util.Calendar;
-import java.util.List;
 
-
+/**
+ * Activity responsible for displaying and analysing travel data.
+ */
 public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCallback {
     private ViewDataViewModel viewDataViewModel;
 
     private GoogleMap map;
 
+    /**
+     * Called when the activity is created. Initializes the UI components, sets up the ViewModel,
+     * and observes changes in the selected time and type of travel.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +64,6 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.dataMap);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
-        viewDataViewModel.updateDistanceAndTime();
 
         BottomNavigationView navBar;
 
@@ -99,6 +104,12 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
 
     }
 
+    /**
+     * Handles the updates when the selected time or type of travel is changed.
+     *
+     * @param timeSelected The ID of the selected time button.
+     * @param typeSelected The ID of the selected type button.
+     */
     public void timeOrTypeUpdated(int timeSelected, int typeSelected){
         Calendar calendar = Calendar.getInstance();
         long endTime = System.currentTimeMillis();
@@ -171,6 +182,12 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
 
+    /**
+     * Called when the map is ready to be displayed. Observes changes in the path data and updates
+     * the map with the polyline and markers.
+     *
+     * @param googleMap The GoogleMap instance.
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
@@ -206,11 +223,19 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+    /**
+     * Starts the ViewAllTravels activity to view all recorded journeys.
+     *
+     * @param v The View associated with the button press.
+     */
     public void viewAllTravels(View v){
         Intent intent = new Intent(this, ViewAllTravelsActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Handles the press of the back button, updating the navigation bar and finishing the activity.
+     */
     public void onBack(){
         NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
@@ -221,7 +246,6 @@ public class ViewDataActivity extends AppCompatActivity implements OnMapReadyCal
      */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        // Save the current background color, playback speed
         super.onSaveInstanceState(outState);
     }
 

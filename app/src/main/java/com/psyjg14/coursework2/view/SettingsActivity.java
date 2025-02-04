@@ -8,23 +8,28 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.NavBarManager;
+import com.psyjg14.coursework2.model.NavBarManager;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.databinding.ActivitySettingsBinding;
 import com.psyjg14.coursework2.viewmodel.SettingsViewModel;
 
 
-
+/**
+ * Activity responsible for displaying and managing application settings.
+ */
 public class SettingsActivity extends AppCompatActivity {
     private SettingsViewModel settingsViewModel;
 
+    /**
+     * Called when the activity is created. Initializes the UI components and sets up the ViewModel.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,14 +72,26 @@ public class SettingsActivity extends AppCompatActivity {
 
 
 
+    /**
+     * A fragment that displays the application settings.
+     */
     public static class SettingsFragment extends PreferenceFragmentCompat implements
             SharedPreferences.OnSharedPreferenceChangeListener {
 
+        /**
+         * Called to create the preferences screen.
+         *
+         * @param savedInstanceState The saved state of the fragment.
+         * @param rootKey            The key of the preference root (if it exists).
+         */
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.preferences, rootKey);
         }
 
+        /**
+         * Called when the fragment is resumed. Registers the preference change listener and loads preferences.
+         */
         @Override
         public void onResume() {
             super.onResume();
@@ -82,12 +99,21 @@ public class SettingsActivity extends AppCompatActivity {
             loadPreferences();
         }
 
+        /**
+         * Called when the fragment is paused. Unregisters the preference change listener.
+         */
         @Override
         public void onPause() {
             super.onPause();
             getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         }
 
+        /**
+         * Called when a shared preference is changed.
+         *
+         * @param sharedPreferences The SharedPreferences that received the change.
+         * @param key               The key of the preference that was changed.
+         */
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             // Handle the change in preferences
@@ -99,6 +125,9 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
+        /**
+         * Loads the preferences and updates their summaries.
+         */
         private void loadPreferences() {
             updatePreferenceSummary(findPreference(getString(R.string.pref_location_accuracy_key)));
             updatePreferenceSummary(findPreference(getString(R.string.pref_unit_system_key)));
@@ -106,8 +135,12 @@ public class SettingsActivity extends AppCompatActivity {
             updatePreferenceSummary(findPreference(getString(R.string.pref_tracking_key)));
         }
 
+        /**
+         * Updates the summary of the given preference based on its current value.
+         *
+         * @param preference The preference to update.
+         */
         private void updatePreferenceSummary(Preference preference) {
-            // Update the summary of the preference based on the current value
             if (preference instanceof ListPreference) {
                 ListPreference listPreference = (ListPreference) preference;
                 if(listPreference.getEntry() == null){
@@ -139,7 +172,9 @@ public class SettingsActivity extends AppCompatActivity {
 
 
 
-
+    /**
+     * Handles the back button press, navigating to the previous screen.
+     */
     public void onBack(){
         NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();

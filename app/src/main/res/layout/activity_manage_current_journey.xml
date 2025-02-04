@@ -10,7 +10,7 @@
 
         <variable
             name="navBarManager"
-            type="com.psyjg14.coursework2.NavBarManager" />
+            type="com.psyjg14.coursework2.model.NavBarManager" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -5,19 +5,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
 
-
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -33,7 +28,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.psyjg14.coursework2.MyTypeConverters;
+import com.psyjg14.coursework2.model.MyTypeConverters;
 import com.psyjg14.coursework2.R;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivitySpecificTravelBinding;
@@ -43,11 +38,20 @@ import com.psyjg14.coursework2.viewmodel.SpecificTravelViewModel;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Activity responsible for displaying details of a specific travel journey, including a map view.
+ */
 public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallback {
     private SpecificTravelViewModel specificTravelViewModel;
 
     private GoogleMap map;
 
+    /**
+     * Called when the activity is created. Initializes the UI components, sets up the ViewModel,
+     * and fetches details of the specific travel journey.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +68,6 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
-        Log.d("COMP3018", "************************8Name Before Thread: " + getIntent().getStringExtra("name"));
         if(getIntent().getStringExtra("name") != null){
             specificTravelViewModel.setName(MyTypeConverters.nameFromDatabaseName(Objects.requireNonNull(getIntent().getStringExtra("name"))));
         }
@@ -96,6 +99,11 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
+    /**
+     * Called when the map is ready to be used. Updates the map with the journey's path and markers.
+     *
+     * @param googleMap The GoogleMap instance representing the map.
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
@@ -118,34 +126,28 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         });
     }
 
+    /**
+     * Handles the back arrow button press, finishing the activity.
+     *
+     * @param v The View associated with the back arrow button.
+     */
     public void onBackArrowPressed(View v){
         finish();
     }
 
+    /**
+     * Handles the back button press, finishing the activity.
+     */
     public void onBack(){
         finish();
     }
 
-    /**
-     * Called when the activity is destroyed.
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-
-        super.onSaveInstanceState(outState);
-
-        outState.putString("name", specificTravelViewModel.getName().getValue());
-    }
 
     /**
-     * Called when the activity is restored.
+     * Handles the button press to delete the current journey, displaying a confirmation popup.
+     *
+     * @param v The View associated with the delete button.
      */
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        specificTravelViewModel.setName(savedInstanceState.getString("name"));
-    }
-
     public void onDeleteJourneyPressed(View v){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Delete Journey");
@@ -165,8 +167,12 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         builder.show();
     }
 
+    /**
+     * Handles the button press to edit the current journey, displaying a popup.
+     *
+     * @param v The View associated with the edit button.
+     */
     public void onEditJourneyPressed(View v){
-        Log.d("COMP3018", "isWalk: " + specificTravelViewModel.getIsWalk().getValue() + ", isRun: " + specificTravelViewModel.getIsRun().getValue() + ", isCycle: " + specificTravelViewModel.getIsCycle().getValue());
         AlertDialog.Builder builder = new AlertDialog.Builder(SpecificTravel.this);
         builder.setTitle("Edit Journey");
 
@@ -200,7 +206,6 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
             } else {
                     if(newName.equals(specificTravelViewModel.getName().getValue())){
-                        Log.d("COMP3018", "onEditJourneyPressed: name not changed");
                         LiveData<MovementEntity> movementEntityLiveData =specificTravelViewModel.getMovementById(MyTypeConverters.nameToDatabaseName(Objects.requireNonNull(specificTravelViewModel.getName().getValue())));
                         movementEntityLiveData.observe(this, movementEntity -> {
                             if(movementEntity != null){
@@ -255,4 +260,24 @@ public class SpecificTravel extends AppCompatActivity implements OnMapReadyCallb
         builder.show();
     }
 
+
+    /**
+     * Called when the activity is destroyed.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
+
+        outState.putString("name", specificTravelViewModel.getName().getValue());
+    }
+
+    /**
+     * Called when the activity is restored.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        specificTravelViewModel.setName(savedInstanceState.getString("name"));
+    }
 }

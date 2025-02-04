@@ -1,7 +1,6 @@
 package com.psyjg14.coursework2.view;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -10,12 +9,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
-import com.psyjg14.coursework2.MyTypeConverters;
+import com.psyjg14.coursework2.model.MyTypeConverters;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.TravelDataItemAdapter;
+import com.psyjg14.coursework2.model.TravelDataItemAdapter;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityViewAllTravelsBinding;
 import com.psyjg14.coursework2.model.TravelDataItem;
@@ -27,10 +25,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Activity responsible for displaying a list of all recorded travel journeys.
+ */
 public class ViewAllTravelsActivity extends AppCompatActivity {
     private ViewAllTravelsViewModel viewAllTravelsViewModel;
 
 
+    /**
+     * Called when the activity is created. Initializes the UI components, sets up the ViewModel,
+     * and observes changes in the list of recorded travel journeys.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +64,6 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
         TravelDataItemAdapter adapter = new TravelDataItemAdapter(viewAllTravelsViewModel.getMovementList(), this);
         recyclerView.setAdapter(adapter);
 
-        Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: ");
         viewAllTravelsViewModel.getAllMovements().observe(this, movementEntities -> {
             if(movementEntities != null){
                 viewAllTravelsViewModel.getMovementList().getValue().clear();
@@ -76,9 +82,7 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
                     }
                     TravelDataItem travelDataItem = new TravelDataItem(MyTypeConverters.nameFromDatabaseName(entity.movementName), traveltype, dateCompleted);
                     list.add(travelDataItem);
-                    Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: " + travelDataItem.getName() + ", " + travelDataItem.getTravelType() + ", " + travelDataItem.getDateCompleted());
                 }
-                Log.d("COMP3018", "ViewAllTravelsActivity: onCreate: " + list);
                 viewAllTravelsViewModel.getMovementList().setValue(list);
             }
         });
@@ -91,18 +95,30 @@ public class ViewAllTravelsActivity extends AppCompatActivity {
 
     }
 
-    public void onShowMapPressed(View view) {
+    /**
+     * Handles the press of the "Show Details" button for a specific travel journey, starting the activity to display the journey's details.
+     *
+     * @param view The View associated with the pressed "Show Details" button.
+     */
+    public void onShowDetailsPressed(View view) {
         String name = view.getTag().toString();
-        Log.d("COMP3018", "Name: " + name);
         Intent intent = new Intent(this, SpecificTravel.class);
         intent.putExtra("name", name);
         startActivity(intent);
     }
 
+    /**
+     * Handles the press of the back arrow button, finishing the activity.
+     *
+     * @param v The View associated with the back arrow button.
+     */
     public void onBackArrowPressed(View v){
         finish();
     }
 
+    /**
+     * Handles the back button press, finishing the activity.
+     */
     public void onBack(){
         finish();
     }

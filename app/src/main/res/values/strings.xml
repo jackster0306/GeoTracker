@@ -35,6 +35,14 @@
     <string name="journey_note_string">Add a note about the journey:</string>
     <string name="enter_note_string">Enter Note</string>
 
+    <string name="year_string">Year</string>
+    <string name="month_string">Month</string>
+    <string name="week_string">Week</string>
+    <string name="day_string">Day</string>
+    <string name="total_string">Total</string>
+    <string name="all_string">All</string>
+    <string name="previous_travels_string">View All Previous Travels</string>
+
 
 
 

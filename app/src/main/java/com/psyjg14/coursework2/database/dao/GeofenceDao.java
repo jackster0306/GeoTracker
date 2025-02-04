@@ -20,7 +20,7 @@ import java.util.List;
 public interface GeofenceDao {
 
     /**
-     * Retrieve all geofences from the database as LiveData.
+     * Retrieve all geofences from the database.
      *
      * @return LiveData containing a list of all geofences.
      */
@@ -72,6 +72,7 @@ public interface GeofenceDao {
 
     /**
      * Retrieve all geofences from the database as a Cursor.
+     * Used by the ContentProvider.
      *
      * @return A Cursor containing all geofences.
      */

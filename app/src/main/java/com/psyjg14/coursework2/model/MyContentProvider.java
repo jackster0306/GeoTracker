@@ -1,4 +1,4 @@
-package com.psyjg14.coursework2;
+package com.psyjg14.coursework2.model;
 
 import android.app.Application;
 import android.content.ContentProvider;
@@ -6,15 +6,14 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.psyjg14.coursework2.model.DatabaseRepository;
-
 import java.util.Objects;
 
+/**
+ * The MyContentProvider class provides methods to interact with the database.
+ */
 public class MyContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.psyjg14.coursework2.provider";
     private static final String GEOFENCES_PATH = "geofence_table";
@@ -35,22 +34,38 @@ public class MyContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY, MOVEMENTS_PATH, 2);
     }
 
+    /**
+     * Called when the content provider is created. Initializes the DatabaseRepository.
+     *
+     * @return True if the provider was successfully loaded, false otherwise.
+     */
     @Override
     public boolean onCreate() {
-        Log.d("COMP3018", "**************************************88CONTENT PROVIDER CREATED");
         databaseRepository = new DatabaseRepository((Application) getContext().getApplicationContext());
         return true;
     }
 
+    /**
+     * Queries the specified table based on the given URI and returns the result as a Cursor.
+     * All parameters except the URI will be null when called.
+     *
+     * @param uri           The URI to query.
+     * @param projection    The list of columns to put into the cursor. If null, all columns are included.
+     * @param selection     A selection criteria to apply when filtering rows. If null, all rows are included.
+     * @param selectionArgs You may include ?s in selection, which will be replaced by the values from selectionArgs.
+     * @param sortOrder     How the rows in the cursor should be sorted.
+     * @return A Cursor containing the result of the query.
+     * @throws IllegalArgumentException if the URI is unknown.
+     */
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         Cursor cursor;
-        if(uriMatcher.match(uri) == GEOFENCES_TABLE) {
+        if (uriMatcher.match(uri) == GEOFENCES_TABLE) {
             cursor = databaseRepository.getAllGeofencesAsCursor();
-        }else if(uriMatcher.match(uri) == MOVEMENTS_TABLE){
+        } else if (uriMatcher.match(uri) == MOVEMENTS_TABLE) {
             cursor = databaseRepository.getAllMovementsAsCursor();
-        }else{
+        } else {
             throw new IllegalArgumentException("Unknown URI: " + uri);
         }
         cursor.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), uri);

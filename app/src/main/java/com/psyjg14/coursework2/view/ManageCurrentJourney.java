@@ -19,16 +19,14 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.MyTypeConverters;
-import com.psyjg14.coursework2.NavBarManager;
+import com.psyjg14.coursework2.model.MyTypeConverters;
+import com.psyjg14.coursework2.model.NavBarManager;
 import com.psyjg14.coursework2.R;
-import com.psyjg14.coursework2.database.AppDatabase;
 import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.ActivityManageCurrentJourneyBinding;
 import com.psyjg14.coursework2.model.DatabaseRepository;
@@ -38,6 +36,9 @@ import com.psyjg14.coursework2.viewmodel.ManageCurrentJourneyViewModel;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Activity responsible for managing the current journey, including starting and stopping tracking.
+ */
 public class ManageCurrentJourney extends AppCompatActivity {
     private ManageCurrentJourneyViewModel manageCurrentJourneyViewModel;
 
@@ -45,6 +46,11 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
     private ActivityManageCurrentJourneyBinding binding;
 
+    /**
+     * Called when the activity is created. Initializes the UI components and sets up the ViewModel.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +84,12 @@ public class ManageCurrentJourney extends AppCompatActivity {
         });
     }
 
+    /**
+     * Creates a new name for a journey based on the existing movements.
+     *
+     * @param movements The list of existing movement entities.
+     * @return A new name for the journey.
+     */
     private String createNewName(List<MovementEntity> movements){
         String newName;
         if(movements.size() > 0){
@@ -91,10 +103,16 @@ public class ManageCurrentJourney extends AppCompatActivity {
                 createNewName(movements);
             }
         }
-        Log.d("COMP3018", "createNewName: " + newName);
         return newName;
     }
 
+    /**
+     * Handles the result of permission requests.
+     *
+     * @param requestCode  The request code passed to requestPermissions.
+     * @param permissions  The requested permissions.
+     * @param grantResults The results of the corresponding permissions.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -106,7 +124,11 @@ public class ManageCurrentJourney extends AppCompatActivity {
     }
 
 
-
+    /**
+     * Called when the "Start" button is pressed. Initiates journey tracking if permissions are granted.
+     *
+     * @param v The view that triggered the method.
+     */
     public void onStartPressed(View v){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
@@ -124,8 +146,13 @@ public class ManageCurrentJourney extends AppCompatActivity {
         }
     }
 
+    /**
+     * Called when the "Stop" button is pressed. Saves the journey details only if a valid name is provided.
+     * Stops journey tracking.
+     *
+     * @param v The view that triggered the method.
+     */
     public void onStopPressed(View v){
-        Log.d("COMP3018", "onStopPressed: " + binding.nameEditText.getText().toString());
         if(binding.nameEditText.getText().toString().equals("")){
             Toast.makeText(ManageCurrentJourney.this, "Please enter a name for your journey", Toast.LENGTH_SHORT).show();
         } else {
@@ -135,7 +162,6 @@ public class ManageCurrentJourney extends AppCompatActivity {
                     boolean nameExists = false;
                     for(MovementEntity movement : movements){
                         if(movement.movementName.equals(binding.nameEditText.getText().toString())){
-                            Log.d("COMP3018", "NAME EXISTS: " + movement.movementName + ", " + binding.nameEditText.getText().toString());
                             nameExists = true;
                         }
                     }
@@ -164,16 +190,17 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
 
 
+    /**
+     * Handles the connection to the LocationService.
+     */
     private final ServiceConnection connection = new ServiceConnection() {
 
         // Called when a client binds to the service
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d("COMP3018", "onServiceConnected");
             LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
             locationService = binder.getService();
             manageCurrentJourneyViewModel.setIsBound(true);
-            Log.d("COMP3018", "*********************onServiceConnected: " + locationService.getIsUpdating());
             manageCurrentJourneyViewModel.setIsTracking(locationService.getIsUpdating());
 
 
@@ -184,7 +211,6 @@ public class ManageCurrentJourney extends AppCompatActivity {
 
                 @Override
                 public void onStoppedJourney(float distanceTravelled, long startTime, long endTime, String type, List<LatLng> path) {
-                    Log.d("COMP3018", "NAME: "+ manageCurrentJourneyViewModel.getName());
                     MovementEntity movementEntity = new MovementEntity();
                     movementEntity.movementName = MyTypeConverters.nameToDatabaseName(manageCurrentJourneyViewModel.getName());
                     movementEntity.movementType = type.toLowerCase();
@@ -213,7 +239,6 @@ public class ManageCurrentJourney extends AppCompatActivity {
      */
     @Override
     protected void onStart() {
-        Log.d("COMP3018", "OnStart called");
         super.onStart();
         Intent intent = new Intent(this, LocationService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
@@ -224,7 +249,6 @@ public class ManageCurrentJourney extends AppCompatActivity {
      */
     @Override
     protected void onStop() {
-        Log.d("COMP3018", "OnStop called");
         super.onStop();
         if (manageCurrentJourneyViewModel.getIsBound()) {
             unbindService(connection);
@@ -232,6 +256,9 @@ public class ManageCurrentJourney extends AppCompatActivity {
         }
     }
 
+    /**
+     * Handles the back button press.
+     */
     public void onBack(){
         NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();

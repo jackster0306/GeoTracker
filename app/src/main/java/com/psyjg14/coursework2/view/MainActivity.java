@@ -7,10 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -21,14 +19,10 @@ import android.util.Log;
 
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 
 import android.view.View;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,11 +38,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.psyjg14.coursework2.MyContentProvider;
-import com.psyjg14.coursework2.MyTypeConverters;
-import com.psyjg14.coursework2.NavBarManager;
+import com.psyjg14.coursework2.model.MyContentProvider;
+import com.psyjg14.coursework2.model.NavBarManager;
 import com.psyjg14.coursework2.database.entities.GeofenceEntity;
-import com.psyjg14.coursework2.database.entities.MovementEntity;
 import com.psyjg14.coursework2.databinding.GeofenceDetailsLayoutBinding;
 import com.psyjg14.coursework2.model.GeofenceHelper;
 import com.psyjg14.coursework2.R;
@@ -58,6 +50,9 @@ import com.psyjg14.coursework2.viewmodel.MainActivityViewModel;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The main activity of the application responsible for displaying the map and managing geofences.
+ */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
     private static final String TAG = "COMP3018";
     private final int FINE_PERMISSION_CODE = 1;
@@ -73,7 +68,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-    @SuppressLint("StaticFieldLeak")
+    /**
+     * Called when the activity is created. Initializes the UI components and sets up the map.
+     *
+     * @param savedInstanceState The saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +114,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (geofenceMarker != null) {
                     showGeofenceDialog(geofenceMarker);
                 } else {
-                    Log.d("COMP3018", "getFirstPressed: " + mainActivityViewModel.getGeofenceFirstPressed());
                     if (!mainActivityViewModel.getGeofenceFirstPressed()) {
                         Toast.makeText(MainActivity.this, "No geofence added", Toast.LENGTH_SHORT).show();
                     }
@@ -187,14 +185,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
-    /**************************************************************************
-     *  Map code
-     **************************************************************************/
-
+    /**
+     * Initializes the map and sets up listeners for user interactions.
+     *
+     * @param googleMap The GoogleMap instance representing the map.
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        Log.d("COMP3018", "Map is ready");
         map = googleMap;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -226,7 +223,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                Log.d("SEARCH", "Query: " + newText);
                 return false;
             }
         });
@@ -237,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         map.setOnCircleClickListener(circle -> {
             String geofenceName = Objects.requireNonNull(circle.getTag()).toString();
-            //SETUP DIALOG THAT SHOWS, DISPLAYING NAME AND CLASSIFICATION WITH A DELETE BUTTON
             mainActivityViewModel.getAllGeofences().observe(this, geofences -> {
                 for (GeofenceEntity geofence : geofences) {
                     if (geofence.name.equals(geofenceName)) {
@@ -248,10 +243,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    /**
+     * Updates the geofences on the map based on the provided list of geofences.
+     *
+     * @param geofences The list of geofences to be displayed on the map.
+     */
     private void updateGeofencesOnMap(List<GeofenceEntity> geofences){
                     map.clear();
-                    Log.d("COMP3018", "updateGeofencesOnMap");
-                    Log.d("COMP3018", "geofences size: " + geofences.size());
                     for (GeofenceEntity geofence : geofences) {
                         LatLng latLng = new LatLng(geofence.latitude, geofence.longitude);
                         int geofenceColour;
@@ -276,6 +274,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    /**
+     * Shows the details of a geofence as a popup.
+     *
+     * @param geofence The geofence entity to display details for.
+     */
     private void showGeofenceDetails(GeofenceEntity geofence){
 
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -302,6 +305,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             );
     }
 
+    /**
+     * Displays a popup for editing a geofence.
+     *
+     * @param geofence The geofence entity to be edited.
+     */
     private void EditGeofence(GeofenceEntity geofence){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Edit Journey");
@@ -352,9 +360,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+    /**
+     * Called when the map is clicked.
+     *
+     * @param latLng The LatLng coordinates of the clicked location on the map.
+     */
     @Override
     public void onMapClick(@NonNull LatLng latLng) {
-        Log.d(TAG, "Map clicked");
         if (mainActivityViewModel.getAddingGeofenceAsBool()) {
             map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             MarkerOptions options = new MarkerOptions().position(latLng).title("Geofence Location");
@@ -364,21 +376,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mainActivityViewModel.removeGeofenceMarker();
             }
             mainActivityViewModel.setGeofenceMarker(map.addMarker(options));
-            Log.d("COMP3018", "Map Clicked, Geofence Marker: " + mainActivityViewModel.getGeofenceMarker());
         }
     }
 
-    /**************************************************************************
-     *  Requests code
-     **************************************************************************/
-
-
+    /**
+     * Handles the result of permission requests.
+     *
+     * @param requestCode  The request code passed to requestPermissions.
+     * @param permissions  The requested permissions.
+     * @param grantResults The results of the corresponding permissions.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //locationService.getLastLocation();
                 mainActivityViewModel.setRequestingLocationUpdates(true);
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     map.setMyLocationEnabled(true);
@@ -396,7 +408,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     protected void onStart() {
-        Log.d(TAG, "OnStart called");
         super.onStart();
     }
 
@@ -405,12 +416,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     protected void onStop() {
-        Log.d(TAG, "OnStop called");
         super.onStop();
     }
 
+    /**
+     * Displays a popup for adding a new geofence.
+     *
+     * @param geofenceMarker The marker representing the geofence on the map.
+     */
     private void showGeofenceDialog(Marker geofenceMarker) {
-        Log.d("COMP3018", "showGeofenceDialog");
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Add Geofence");
 
@@ -426,9 +440,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             String geofenceClassification = spinner.getSelectedItem().toString();
             String geofenceNote = noteInput.getText().toString();
             boolean isDuplicate = false;
-            Log.d("COMP3018", "geofenceName: " + geofenceName);
             for(GeofenceEntity geofence : Objects.requireNonNull(mainActivityViewModel.getAllGeofences().getValue())){
-                Log.d("COMP3018", "Geofence Name from Current Geofences: " + geofence.name + " geofenceName to add: " + geofenceName);
                 if(geofence.name.equals(geofenceName)){
                     isDuplicate = true;
                 }
@@ -452,6 +464,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.show();
     }
 
+    /**
+     * Handles the back button press.
+     */
     public void onBack(){
         NavBarManager.getInstance().onBackPressed(this, R.id.statsMenu);
         finish();
@@ -464,15 +479,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Save the state of addingGeofence
         outState.putBoolean("addingGeofence", mainActivityViewModel.getAddingGeofenceAsBool());
-        // Save the state of geofenceFirstPressed
         outState.putBoolean("geofenceFirstPressed", mainActivityViewModel.getGeofenceFirstPressed());
-        // You can save other relevant data here if needed
 
-        if(mainActivityViewModel.getAddingGeofenceAsBool()){
-            //put marker position
-        }
     }
 
     /**
@@ -485,7 +494,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             boolean addingGeofence = savedInstanceState.getBoolean("addingGeofence");
             mainActivityViewModel.setAddingGeofence(addingGeofence);
 
-            // Restore the state of geofenceFirstPressed
             boolean geofenceFirstPressed = savedInstanceState.getBoolean("geofenceFirstPressed");
             mainActivityViewModel.setGeofenceFirstPressed(geofenceFirstPressed);
         }

@@ -10,7 +10,7 @@
 
     <variable
         name="navBarManager"
-        type="com.psyjg14.coursework2.NavBarManager" />
+        type="com.psyjg14.coursework2.model.NavBarManager" />
 </data>
 
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -58,32 +58,32 @@
             android:id="@+id/yearButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Year" />
+            android:text="@string/year_string" />
 
         <RadioButton
             android:id="@+id/monthButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Month" />
+            android:text="@string/month_string" />
 
         <RadioButton
             android:id="@+id/weekButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Week" />
+            android:text="@string/week_string" />
 
         <RadioButton
             android:id="@+id/dayButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Day" />
+            android:text="@string/day_string" />
 
         <RadioButton
             android:id="@+id/totalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="Total" />
+            android:text="@string/total_string" />
 
     </RadioGroup>
 
@@ -102,33 +102,29 @@
             android:id="@+id/walkButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Walk" />
+            android:text="@string/walk_string" />
 
         <RadioButton
             android:id="@+id/runButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Run" />
+            android:text="@string/run_string" />
 
         <RadioButton
             android:id="@+id/cycleButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cycle" />
+            android:text="@string/cycle_string" />
 
         <RadioButton
             android:id="@+id/allButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="All" />
+            android:text="@string/all_string" />
 
 
     </RadioGroup>
-
-    <!-- Map Section -->
-
-    <!-- Button to View All Previous Travels -->
     <FrameLayout
         android:layout_width="414dp"
         android:layout_height="466dp"
@@ -140,7 +136,6 @@
         app:layout_constraintTop_toBottomOf="@+id/typeRadioGroup"
         app:layout_constraintVertical_bias="0.0">
 
-        <!-- Map Fragment (You may replace this with a MapView or other map implementation) -->
         <fragment
             android:id="@+id/dataMap"
             android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -156,7 +151,7 @@
         android:layout_marginBottom="4dp"
         android:background="?attr/colorPrimary"
         android:onClick="viewAllTravels"
-        android:text="View All Previous Travels"
+        android:text="@string/previous_travels_string"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toTopOf="@+id/dataNavBar"
         app:layout_constraintEnd_toEndOf="parent"
