@@ -71,7 +71,6 @@ Head to the stats screen, which is the 2nd icon on the navbar at the bottom
 ![](screenshots/Stats%20Screen/previous_journeys.png)
 ![](screenshots/Stats%20Screen/view_journey.png)
 
-MORE IMAGES
 
 ### Journey Tracking
 Start a Journey in the **Manage** Screen, where you choose whether the journey will be a walk, run, or cycle and then press 
