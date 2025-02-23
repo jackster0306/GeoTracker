@@ -50,26 +50,34 @@ On an emulated device, this app will not work properly as it's not physical and 
 - Click a location on the map and then add a Geofence by clicking the icon bottom right
 - You can enter a name, note, and classification (Neutral, Good, Bad) for the Geofence
 
-MAYBE IMAGES FOR ABOVE
-![](screenshots/Map%20Screen/map_closeup.png)
+![](screenshots/Map%20Screen/map_original.png)
+![](screenshots/Map%20Screen/map_closeup3.png)
+![](screenshots/Map%20Screen/map_search.png)
+![](screenshots/Map%20Screen/add_geofence.png)
+![](screenshots/Map%20Screen/geofence_added.png)
+
 
 
 ### View Journey Stats
 Head to the stats screen, which is the 2nd icon on the navbar at the bottom
-
-IMAGES
 
 
 - You can see the total stats at the top of the screen, and edit the filters accordingly
 - The map will show you most recent journey, or a default map if you do not have one.
 - Use the **View All Previous Travels** button to see your journey history.
 
+![](screenshots/Stats%20Screen/stats_screen.png)
+![](screenshots/Stats%20Screen/previous_journeys.png)
+![](screenshots/Stats%20Screen/view_journey.png)
+
 MORE IMAGES
 
 ### Journey Tracking
-Start a Journey in the **Manage** Screen, where you choose whether the journey will be a walk, run, or cycle and then press the Start button
+Start a Journey in the **Manage** Screen, where you choose whether the journey will be a walk, run, or cycle and then press 
+the Start button
 
-SHOW IMAGE HERE
+![](screenshots/manage_screen.png)
+![](screenshots/end_journey.png)
 
 
 ### Settings
@@ -79,7 +87,8 @@ Displays the settings options for the app, specifically the tracking
 - **Update Periods:** Decide how often updates of your location on the map should occur, it is based on the distance moved
 - **Journey Tracking:** Decide if you want the app to continue to track you when the app completely closed or not
 
-IMAGES IN HERE SOMEHWHERE
+
+![](screenshots/settings_screen.png)
 
 
 
