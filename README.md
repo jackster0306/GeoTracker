@@ -58,6 +58,7 @@ On an emulated device, this app will not work properly as it's not physical and 
 
 
 
+
 ### View Journey Stats
 Head to the stats screen, which is the 2nd icon on the navbar at the bottom
 
