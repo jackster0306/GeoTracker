@@ -42,9 +42,8 @@ The app should now function properly, so you can run it.
 
 
 ## The Project
-On an emulated device, this app will not work properly as it's not physical and able to have it's location tracked. You can set your location in it's settings and use a FIND TYPE OF FILE to simulate a journey
+On an emulated device, this app will not work properly as it's not physical and able to have it's location tracked. You can set your location in it's settings and use a GPX/KML file to simulate a journey
 ### Map Screen
-IMAGE HERE
 
 - Once the map loads, press the icon top right to go to your current location
 - You can search for a location at the top search bar
@@ -52,6 +51,8 @@ IMAGE HERE
 - You can enter a name, note, and classification (Neutral, Good, Bad) for the Geofence
 
 MAYBE IMAGES FOR ABOVE
+![](screenshots/Map%20Screen/map_closeup.png)
+
 
 ### View Journey Stats
 Head to the stats screen, which is the 2nd icon on the navbar at the bottom
